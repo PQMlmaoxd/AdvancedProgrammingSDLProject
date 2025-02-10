@@ -2,6 +2,7 @@
 #include <SDL2/SDL.h>
 #include <SDL_ttf.h>
 #include "Player.h"
+#include "Menu.h"
 #include <iostream>
 #include <sstream>
 
@@ -33,7 +34,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    SDL_Window* window = SDL_CreateWindow("SDL2 Arrow Key Movement", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
+    SDL_Window* window = SDL_CreateWindow("2D Platformer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
     if (!window) {
         std::cerr << "Failed to create window: " << SDL_GetError() << std::endl;
         return 1;
@@ -52,9 +53,18 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Khởi tạo nhân vật tại vị trí (100,100)
-    Player player(100, 100);
+    // Hiển thị menu trước khi vào game
+    Menu menu(renderer);
+    int choice = menu.run();
+    if (choice == -1 || choice == 3) {
+        std::cout << "Game exited.\n";
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 0;
+    }
 
+    Player player(100, 300);
     bool running = true;
     SDL_Event e;
 
@@ -81,8 +91,13 @@ int main(int argc, char* argv[]) {
         player.update();
 
         // Xóa màn hình
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_SetRenderDrawColor(renderer, 135, 206, 235, 255);
         SDL_RenderClear(renderer);
+
+        // Vẽ nền đất (platform)
+        SDL_SetRenderDrawColor(renderer, 100, 200, 100, 255);
+        SDL_Rect ground = {0, 332, 800, 100};
+        SDL_RenderFillRect(renderer, &ground);
 
         // Vẽ nhân vật
         player.render(renderer);
@@ -100,19 +115,19 @@ int main(int argc, char* argv[]) {
         std::stringstream fpsText;
         fpsText << "FPS: " << (int)fps;
         SDL_Texture* fpsTexture = renderText(fpsText.str(), font, textColor, renderer);
-        
+
         if (fpsTexture) {
-            SDL_Rect fpsRect = {10, 10, 100, 30}; 
+            SDL_Rect fpsRect = {10, 10, 100, 30};
             SDL_RenderCopy(renderer, fpsTexture, NULL, &fpsRect);
             SDL_DestroyTexture(fpsTexture);
         }
 
         SDL_RenderPresent(renderer);
 
-        // Đảm bảo game chạy không quá nhanh
+        // Giữ FPS ổn định
         Uint32 frameTime = SDL_GetTicks() - frameStart;
         if (frameTime < 16) {
-            SDL_Delay(16 - frameTime); // Giới hạn ~60 FPS
+            SDL_Delay(16 - frameTime);
         }
     }
 

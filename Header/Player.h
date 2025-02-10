@@ -5,16 +5,19 @@
 
 class Player {
 public:
-    Player();  // Constructor mặc định
+    Player();
     Player(int x, int y);
-
+    
     void handleInput(const Uint8* keys);
     void update();
     void render(SDL_Renderer* renderer);
-
+    
 private:
     SDL_Rect rect;
     int speed;
+    float velocityY;  // Vận tốc theo trục Y
+    bool isJumping;   // Kiểm tra có đang nhảy không
+    const float gravity = 0.5f; // Trọng lực
 };
 
 #endif

@@ -1,30 +1,44 @@
 #include "Player.h"
 
 Player::Player() {
-    rect = {100, 100, 32, 32}; // Vị trí mặc định 100,100
-    speed = 4;  // Tốc độ di chuyển
+    rect = {100, 300, 32, 32}; // Vị trí ban đầu
+    speed = 4;
+    velocityY = 0;
+    isJumping = false;
 }
 
 Player::Player(int x, int y) {
-    rect = {x, y, 32, 32}; // Nhân vật rộng 32x32 pixels
-    speed = 4;  // Tốc độ di chuyển
+    rect = {x, y, 32, 32};
+    speed = 4;
+    velocityY = 0;
+    isJumping = false;
 }
 
-// Xử lý input từ bàn phím
 void Player::handleInput(const Uint8* keys) {
-    if (keys[SDL_SCANCODE_UP])    rect.y -= speed; // Lên
-    if (keys[SDL_SCANCODE_DOWN])  rect.y += speed; // Xuống
-    if (keys[SDL_SCANCODE_LEFT])  rect.x -= speed; // Trái
-    if (keys[SDL_SCANCODE_RIGHT]) rect.x += speed; // Phải
+    if (keys[SDL_SCANCODE_LEFT])  rect.x -= speed; // Di chuyển trái
+    if (keys[SDL_SCANCODE_RIGHT]) rect.x += speed; // Di chuyển phải
+
+    // Nhảy nếu đang ở mặt đất
+    if (keys[SDL_SCANCODE_UP] && !isJumping) {
+        isJumping = true;
+        velocityY = -10;  // Nhảy lên
+    }
 }
 
-// Cập nhật logic nhân vật (có thể thêm va chạm sau này)
 void Player::update() {
-    // (Chưa có va chạm, chỉ di chuyển tự do)
+    // Áp dụng trọng lực
+    velocityY += gravity;
+    rect.y += (int)velocityY;
+
+    // Giới hạn nhân vật không rơi qua mặt đất
+    if (rect.y >= 300) {
+        rect.y = 300;
+        isJumping = false;
+        velocityY = 0;
+    }
 }
 
-// Vẽ nhân vật lên màn hình
 void Player::render(SDL_Renderer* renderer) {
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // Màu đỏ
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  
     SDL_RenderFillRect(renderer, &rect);
 }
