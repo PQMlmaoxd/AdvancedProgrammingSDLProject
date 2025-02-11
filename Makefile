@@ -1,6 +1,6 @@
 CC = g++
 CFLAGS = -I src/include -I src/include/SDL2 -I Header
-LDFLAGS = -L src/lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf
+LDFLAGS = -L src/lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_mixer
 
 OBJ = main.o Game/Player.o Menu.o
 
