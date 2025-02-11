@@ -12,6 +12,7 @@ public:
     Menu(SDL_Renderer* renderer);
     ~Menu();
     int run();  // Chạy menu và chờ người dùng chọn
+    void showGuide(); // Thêm hàm hiển thị hướng dẫn
 
 private:
     SDL_Renderer* renderer;

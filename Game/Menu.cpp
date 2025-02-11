@@ -1,5 +1,6 @@
 #include "Menu.h"
 #include <iostream>
+#include <fstream>
 
 Menu::Menu(SDL_Renderer* renderer) : renderer(renderer), selectedOption(0), firstPlay(true) {
     font = TTF_OpenFont("src/fonts/arial.ttf", 28);
@@ -61,6 +62,50 @@ void Menu::playMusic() {
         Mix_PlayMusic(backgroundMusic, 1); // Chạy 1 lần đầu tiên
     }
 }
+void Menu::showGuide() {
+    std::ifstream file("src/data/guide.txt");
+    if (!file) {
+        std::cerr << "Không thể mở file hướng dẫn!" << std::endl;
+        return;
+    }
+
+    std::string line;
+    std::vector<std::string> guideText;
+    while (std::getline(file, line)) {
+        guideText.push_back(line);
+    }
+    file.close();
+
+    bool viewingGuide = true;
+    SDL_Event e;
+
+    while (viewingGuide) {
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_QUIT) {
+                viewingGuide = false;
+            }
+            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) {
+                viewingGuide = false;
+            }
+        }
+
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+
+        int yOffset = 100;
+        for (const std::string& line : guideText) {
+            SDL_Texture* textTexture = renderText(line);
+            if (textTexture) {
+                SDL_Rect textRect = {100, yOffset, 600, 30};
+                SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+                SDL_DestroyTexture(textTexture);
+                yOffset += 40;
+            }
+        }
+
+        SDL_RenderPresent(renderer);
+    }
+}
 
 int Menu::run() {
     bool running = true;
@@ -82,7 +127,11 @@ int Menu::run() {
                         selectedOption = (selectedOption + 1) % options.size();
                         break;
                     case SDLK_RETURN:
+                    if (selectedOption == 2) {  // Nếu chọn "Guide"
+                        showGuide();
+                    } else {
                         return selectedOption;
+                    }
                 }
             }
         }
