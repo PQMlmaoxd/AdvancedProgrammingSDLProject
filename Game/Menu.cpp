@@ -1,7 +1,7 @@
 #include "Menu.h"
 #include <iostream>
 
-Menu::Menu(SDL_Renderer* renderer) : renderer(renderer), selectedOption(0) {
+Menu::Menu(SDL_Renderer* renderer) : renderer(renderer), selectedOption(0), firstPlay(true) {
     font = TTF_OpenFont("src/fonts/arial.ttf", 28);
     if (!font) {
         std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
@@ -9,9 +9,21 @@ Menu::Menu(SDL_Renderer* renderer) : renderer(renderer), selectedOption(0) {
 
     textColor = {255, 255, 255, 255};
     options = {"Story Mode", "Endless Mode", "Guide", "Escape"};
+
+    // Khởi tạo SDL_mixer
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+        std::cerr << "SDL_mixer could not initialize! Error: " << Mix_GetError() << std::endl;
+    }
+
+    backgroundMusic = Mix_LoadMUS("src/audio/menu_music.mp3"); // Đổi file nhạc theo ý bạn
+    if (!backgroundMusic) {
+        std::cerr << "Failed to load music: " << Mix_GetError() << std::endl;
+    }
 }
 
 Menu::~Menu() {
+    Mix_FreeMusic(backgroundMusic);
+    Mix_CloseAudio();
     TTF_CloseFont(font);
 }
 
@@ -33,7 +45,7 @@ void Menu::renderMenu() {
 
         SDL_Rect rect = {300, 150 + (int)i * 50, w, h};
         if (i == selectedOption) {
-            SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // Màu vàng cho lựa chọn đang chọn
+            SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
             SDL_RenderDrawRect(renderer, &rect);
         }
 
@@ -44,9 +56,18 @@ void Menu::renderMenu() {
     SDL_RenderPresent(renderer);
 }
 
+void Menu::playMusic() {
+    if (!Mix_PlayingMusic()) { // Nếu nhạc chưa chạy
+        Mix_PlayMusic(backgroundMusic, 1); // Chạy 1 lần đầu tiên
+    }
+}
+
 int Menu::run() {
     bool running = true;
     SDL_Event e;
+
+    // Phát nhạc khi menu bắt đầu
+    playMusic();
 
     while (running) {
         while (SDL_PollEvent(&e)) {
@@ -61,11 +82,19 @@ int Menu::run() {
                         selectedOption = (selectedOption + 1) % options.size();
                         break;
                     case SDLK_RETURN:
-                        return selectedOption; // Trả về tùy chọn đã chọn
+                        return selectedOption;
                 }
             }
         }
+
+        // Kiểm tra nếu nhạc kết thúc thì loop lại từ giây 193.5
+        if (!Mix_PlayingMusic()) {
+            Mix_PlayMusic(backgroundMusic, -1);
+            Mix_SetMusicPosition(193.5);
+        }
+
         renderMenu();
+        SDL_Delay(16); // Giữ ổn định FPS
     }
 
     return -1;
