@@ -3,7 +3,7 @@
 #include <fstream>
 
 Menu::Menu(SDL_Renderer* renderer) : renderer(renderer), selectedOption(0), firstPlay(true) {
-    font = TTF_OpenFont("src/fonts/arial.ttf", 28);
+    font = TTF_OpenFont("src/fonts/arial-unicode-ms.ttf", 28);
     if (!font) {
         std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
     }
@@ -29,7 +29,7 @@ Menu::~Menu() {
 }
 
 SDL_Texture* Menu::renderText(const std::string& text) {
-    SDL_Surface* surface = TTF_RenderText_Solid(font, text.c_str(), textColor);
+    SDL_Surface* surface = TTF_RenderUTF8_Solid(font, text.c_str(), textColor);
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
     return texture;
