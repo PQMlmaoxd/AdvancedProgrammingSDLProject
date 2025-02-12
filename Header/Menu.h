@@ -13,6 +13,7 @@ public:
     ~Menu();
     int run();  // Chạy menu và chờ người dùng chọn
     void showGuide(); // Thêm hàm hiển thị hướng dẫn
+    void stopMusic(); // Thêm hàm dừng nhạc
 
 private:
     SDL_Renderer* renderer;

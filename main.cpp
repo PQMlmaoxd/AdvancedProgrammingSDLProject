@@ -56,6 +56,7 @@ int main(int argc, char* argv[]) {
     // Hiển thị menu trước khi vào game
     Menu menu(renderer);
     int choice = menu.run();
+    menu.stopMusic();
     if (choice == -1 || choice == 3) {
         std::cout << "Game exited.\n";
         SDL_DestroyRenderer(renderer);

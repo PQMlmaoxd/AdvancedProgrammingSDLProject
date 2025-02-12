@@ -107,6 +107,12 @@ void Menu::showGuide() {
     }
 }
 
+void Menu::stopMusic() {
+    if (Mix_PlayingMusic()) {
+        Mix_HaltMusic(); // Dừng nhạc ngay lập tức
+    }
+}
+
 int Menu::run() {
     bool running = true;
     SDL_Event e;
