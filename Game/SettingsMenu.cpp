@@ -20,6 +20,9 @@ SettingsMenu::SettingsMenu(SDL_Renderer* renderer) : renderer(renderer), volume(
     keybindRects[0] = {200, 200, 150, 40};
     keybindRects[1] = {200, 250, 150, 40};
     selectingKey[0] = selectingKey[1] = false;
+
+    // Khởi tạo nút Save
+    saveButton = {250, 320, 100, 40};
 }
 
 SettingsMenu::~SettingsMenu() {
@@ -44,15 +47,11 @@ int SettingsMenu::run() {
         render();
         SDL_Delay(16);
     }
-
-    // Lưu cài đặt trước khi thoát
-    saveSettings();
     return 0;
 }
 
 // ===================== Xử lý sự kiện =====================
 void SettingsMenu::handleEvent(SDL_Event& e) {
-    // Nhấn chuột vào slider
     if (e.type == SDL_MOUSEBUTTONDOWN) {
         int x = e.button.x, y = e.button.y;
 
@@ -62,7 +61,6 @@ void SettingsMenu::handleEvent(SDL_Event& e) {
             Mix_VolumeMusic(volume * MIX_MAX_VOLUME / 100);
         }
 
-        // Kiểm tra click vào ô nhập keybind
         for (int i = 0; i < 2; i++) {
             if (x >= keybindRects[i].x && x <= keybindRects[i].x + keybindRects[i].w &&
                 y >= keybindRects[i].y && y <= keybindRects[i].y + keybindRects[i].h) {
@@ -71,9 +69,14 @@ void SettingsMenu::handleEvent(SDL_Event& e) {
                 selectingKey[i] = false;
             }
         }
+
+        if (x >= saveButton.x && x <= saveButton.x + saveButton.w &&
+            y >= saveButton.y && y <= saveButton.y + saveButton.h) {
+            saveSettings();
+            std::cout << "Settings saved!" << std::endl;
+        }
     }
 
-    // Nếu đang chọn ô nhập keybind và nhấn phím
     if (e.type == SDL_KEYDOWN) {
         for (int i = 0; i < 2; i++) {
             if (selectingKey[i]) {
@@ -90,17 +93,48 @@ void SettingsMenu::render() {
     SDL_RenderClear(renderer);
 
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-
-    // Vẽ thanh trượt
     SDL_RenderFillRect(renderer, &volumeSlider);
     SDL_RenderFillRect(renderer, &volumeHandle);
 
-    // Vẽ ô nhập keybind
     for (int i = 0; i < 2; i++) {
         SDL_RenderDrawRect(renderer, &keybindRects[i]);
     }
 
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderFillRect(renderer, &saveButton);
+
+    // Hiển thị chữ hướng dẫn
+    SDL_Texture* volumeText = renderText("Âm lượng:");
+    SDL_Rect volumeTextRect = {50, 140, 100, 30};
+    SDL_RenderCopy(renderer, volumeText, NULL, &volumeTextRect);
+    SDL_DestroyTexture(volumeText);
+
+    SDL_Texture* keybindLeftText = renderText("Di chuyển trái:");
+    SDL_Rect keybindLeftRect = {50, 200, 150, 30};
+    SDL_RenderCopy(renderer, keybindLeftText, NULL, &keybindLeftRect);
+    SDL_DestroyTexture(keybindLeftText);
+
+    SDL_Texture* keybindRightText = renderText("Di chuyển phải:");
+    SDL_Rect keybindRightRect = {50, 250, 150, 30};
+    SDL_RenderCopy(renderer, keybindRightText, NULL, &keybindRightRect);
+    SDL_DestroyTexture(keybindRightText);
+
+    SDL_Texture* saveText = renderText("Lưu");
+    SDL_Rect saveTextRect = {275, 330, 50, 30};
+    SDL_RenderCopy(renderer, saveText, NULL, &saveTextRect);
+    SDL_DestroyTexture(saveText);
+
     SDL_RenderPresent(renderer);
+}
+
+// ===================== Hàm tạo văn bản =====================
+SDL_Texture* SettingsMenu::renderText(const std::string& text) {
+    SDL_Surface* surface = TTF_RenderUTF8_Solid(font, text.c_str(), {255, 255, 255, 255});
+    if (!surface) return nullptr;
+
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    return texture;
 }
 
 // ===================== Lưu Cài Đặt =====================

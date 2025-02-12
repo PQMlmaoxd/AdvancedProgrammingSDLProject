@@ -29,6 +29,10 @@ private:
 
     void render(); // Vẽ menu
     void handleEvent(SDL_Event& e); // Xử lý sự kiện
+
+    SDL_Rect saveButton; // Nút Save
+    SDL_Texture* renderText(const std::string& text); // Khai báo renderText()
+
 };
 
 #endif
