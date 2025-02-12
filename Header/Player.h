@@ -7,10 +7,10 @@ class Player {
 public:
     Player();
     Player(int x, int y);
-    
     void handleInput(const Uint8* keys);
     void update();
     void render(SDL_Renderer* renderer);
+    void resetPosition(int x, int y); // Thêm hàm reset
     
 private:
     SDL_Rect rect;

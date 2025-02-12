@@ -3,6 +3,7 @@
 #include <SDL_ttf.h>
 #include "Player.h"
 #include "Menu.h"
+#include "PauseMenu.h"
 #include <iostream>
 #include <sstream>
 
@@ -82,6 +83,20 @@ int main(int argc, char* argv[]) {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT)
                 running = false;
+            
+            // Xử lý Pause Menu khi nhấn ESC
+            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) {
+                PauseMenu pauseMenu(renderer);
+                int pauseChoice = pauseMenu.run();
+
+                if (pauseChoice == 1) { // Chơi lại
+                    player.resetPosition(100, 300); // Reset nhân vật
+                } else if (pauseChoice == 2) { // Quay lại menu chính
+                    return main(argc, argv);
+                } else if (pauseChoice == 3) { // Thoát game
+                    running = false;
+                }
+            }
         }
 
         // Nhận input từ bàn phím
