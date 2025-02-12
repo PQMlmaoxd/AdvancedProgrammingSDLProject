@@ -30,6 +30,7 @@ private:
     SDL_Texture* renderText(const std::string& text);
     void renderMenu();
     void playMusic();
+    bool confirmExit(); // Hiển thị hộp thoại xác nhận thoát game
 };
 
 #endif

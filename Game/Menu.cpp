@@ -113,6 +113,56 @@ void Menu::stopMusic() {
     }
 }
 
+bool Menu::confirmExit() {
+    SDL_Event e;
+    bool choosing = true;
+    int selected = 0; // 0 = Không, 1 = Đúng
+
+    while (choosing) {
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_QUIT) return true;
+            if (e.type == SDL_KEYDOWN) {
+                switch (e.key.keysym.sym) {
+                    case SDLK_LEFT:
+                    case SDLK_RIGHT:
+                        selected = 1 - selected; // Chuyển giữa "Đúng" và "Không"
+                        break;
+                    case SDLK_RETURN:
+                        return selected == 1; // Trả về true nếu chọn "Đúng"
+                    case SDLK_ESCAPE:
+                        return false; // Hủy thoát
+                }
+            }
+        }
+
+        // Hiển thị hộp thoại xác nhận
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+
+        SDL_Texture* message = renderText("Bạn thực sự muốn thoát game?");
+        SDL_Rect messageRect = {200, 200, 400, 50};
+        SDL_RenderCopy(renderer, message, NULL, &messageRect);
+        SDL_DestroyTexture(message);
+
+        SDL_Texture* yesText = renderText(selected == 1 ? "> Đúng <" : "Đúng");
+        SDL_Texture* noText = renderText(selected == 0 ? "> Không <" : "Không");
+
+        SDL_Rect yesRect = {250, 300, 100, 40};
+        SDL_Rect noRect = {450, 300, 100, 40};
+
+        SDL_RenderCopy(renderer, yesText, NULL, &yesRect);
+        SDL_RenderCopy(renderer, noText, NULL, &noRect);
+
+        SDL_DestroyTexture(yesText);
+        SDL_DestroyTexture(noText);
+
+        SDL_RenderPresent(renderer);
+        SDL_Delay(16);
+    }
+
+    return false;
+}
+
 int Menu::run() {
     bool running = true;
     SDL_Event e;
@@ -125,6 +175,9 @@ int Menu::run() {
             if (e.type == SDL_QUIT) return -1;
 
             if (e.type == SDL_KEYDOWN) {
+                if (e.key.keysym.sym == SDLK_ESCAPE) {
+                    if (confirmExit()) return -1; // Nếu chọn "Đúng", thoát game
+                }                
                 switch (e.key.keysym.sym) {
                     case SDLK_UP:
                         selectedOption = (selectedOption - 1 + options.size()) % options.size();
