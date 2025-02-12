@@ -9,7 +9,7 @@ Menu::Menu(SDL_Renderer* renderer) : renderer(renderer), selectedOption(0), firs
     }
 
     textColor = {255, 255, 255, 255};
-    options = {"Story Mode", "Endless Mode", "Guide", "Settings", "Escape"};
+    options = {"Story Mode", "Endless Mode", "Guide", "Settings", "Thoát"};
 
     // Khởi tạo SDL_mixer
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
@@ -191,9 +191,11 @@ int Menu::run() {
                     } else if (selectedOption == 3) {  // Nếu chọn "Settings"
                         SettingsMenu settings(renderer);
                         settings.run();
+                    } else if (selectedOption == 4) {  // Nếu chọn "Thoát"
+                        if (confirmExit()) return -1; // Nếu chọn "Đúng", thoát game
                     } else {
                         return selectedOption;
-                    }                    
+                    }             
                 }
             }
         }
