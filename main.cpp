@@ -6,6 +6,7 @@
 #include "PauseMenu.h"
 #include <iostream>
 #include <sstream>
+#include "SettingsMenu.h"
 
 SDL_Texture* renderText(const std::string &message, TTF_Font *font, SDL_Color color, SDL_Renderer *renderer) {
     SDL_Surface* surface = TTF_RenderText_Solid(font, message.c_str(), color);

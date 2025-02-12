@@ -9,7 +9,7 @@ Menu::Menu(SDL_Renderer* renderer) : renderer(renderer), selectedOption(0), firs
     }
 
     textColor = {255, 255, 255, 255};
-    options = {"Story Mode", "Endless Mode", "Guide", "Escape"};
+    options = {"Story Mode", "Endless Mode", "Guide", "Settings", "Escape"};
 
     // Khởi tạo SDL_mixer
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
@@ -135,9 +135,12 @@ int Menu::run() {
                     case SDLK_RETURN:
                     if (selectedOption == 2) {  // Nếu chọn "Guide"
                         showGuide();
+                    } else if (selectedOption == 3) {  // Nếu chọn "Settings"
+                        SettingsMenu settings(renderer);
+                        settings.run();
                     } else {
                         return selectedOption;
-                    }
+                    }                    
                 }
             }
         }

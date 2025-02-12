@@ -6,6 +6,7 @@
 #include <SDL_mixer.h>
 #include <vector>
 #include <string>
+#include "SettingsMenu.h"
 
 class Menu {
 public:
