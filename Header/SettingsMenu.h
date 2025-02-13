@@ -33,6 +33,8 @@ private:
     SDL_Rect saveButton; // Nút Save
     SDL_Texture* renderText(const std::string& text); // Khai báo renderText()
 
+    bool draggingVolume;
+
 };
 
 #endif
