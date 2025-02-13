@@ -2,7 +2,7 @@
 #define SETTINGS_MENU_H
 
 #include <SDL2/SDL.h>
-#include <SDL_ttf.h>
+#include <SDL2/SDL_ttf.h>
 #include <map>
 #include <string>
 
@@ -27,14 +27,18 @@ private:
     SDL_Rect keybindRects[2]; // Ô nhập cho 2 keybinds
     bool selectingKey[2]; // Xác định ô nào đang được chọn
 
-    void render(); // Vẽ menu
-    void handleEvent(SDL_Event& e); // Xử lý sự kiện
-
     SDL_Rect saveButton; // Nút Save
-    SDL_Texture* renderText(const std::string& text); // Khai báo renderText()
 
     bool draggingVolume;
 
+    // Hiệu ứng nhấp nháy
+    int selectedItem;
+    int blinkTimer;
+    bool blinkState;
+
+    void render(); // Vẽ menu
+    void handleEvent(SDL_Event& e); // Xử lý sự kiện
+    SDL_Texture* renderText(const std::string& text); // Tạo texture từ văn bản
 };
 
 #endif
