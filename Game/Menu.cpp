@@ -2,6 +2,20 @@
 #include <iostream>
 #include <fstream>
 
+void Menu::loadSettings() {
+    std::ifstream file("settings.txt");
+    if (file.is_open()) {
+        std::string key;
+        int value;
+        while (file >> key >> value) {
+            if (key == "volume") {
+                Mix_VolumeMusic(value * MIX_MAX_VOLUME / 100); // Cập nhật âm lượng ngay
+            }
+        }
+        file.close();
+    }
+}
+
 Menu::Menu(SDL_Renderer* renderer) : renderer(renderer), selectedOption(0), firstPlay(true) {
     font = TTF_OpenFont("src/fonts/arial-unicode-ms.ttf", 28);
     if (!font) {
@@ -15,6 +29,7 @@ Menu::Menu(SDL_Renderer* renderer) : renderer(renderer), selectedOption(0), firs
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
         std::cerr << "SDL_mixer could not initialize! Error: " << Mix_GetError() << std::endl;
     }
+    loadSettings(); // Load settings ngay khi game khởi động
 
     backgroundMusic = Mix_LoadMUS("src/audio/menu_music.mp3"); // Đổi file nhạc theo ý bạn
     if (!backgroundMusic) {
@@ -62,6 +77,7 @@ void Menu::playMusic() {
         Mix_PlayMusic(backgroundMusic, 1); // Chạy 1 lần đầu tiên
     }
 }
+
 void Menu::showGuide() {
     std::ifstream file("src/data/guide.txt");
     if (!file) {

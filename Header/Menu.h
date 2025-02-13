@@ -31,6 +31,7 @@ private:
     void renderMenu();
     void playMusic();
     bool confirmExit(); // Hiển thị hộp thoại xác nhận thoát game
+    void loadSettings();
 };
 
 #endif

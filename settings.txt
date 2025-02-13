@@ -1,3 +1,3 @@
-volume 15
+volume 3
 left 120
 right 1073741903

@@ -162,6 +162,7 @@ void SettingsMenu::loadSettings() {
             }
         }
         file.close();
+        Mix_VolumeMusic(volume * MIX_MAX_VOLUME / 100);
     } else {
         keybinds["left"] = SDLK_LEFT;
         keybinds["right"] = SDLK_RIGHT;
