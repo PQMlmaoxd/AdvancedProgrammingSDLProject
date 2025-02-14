@@ -9,21 +9,16 @@ SettingsMenu::SettingsMenu(SDL_Renderer* renderer) : renderer(renderer), volume(
         std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
     }
 
-    // Load cài đặt
     loadSettings();
 
-    // Khởi tạo slider
     volumeSlider = {200, 150, 300, 10};
     volumeHandle = {200 + (volume * 3), 140, 20, 30};
 
-    // Khởi tạo ô nhập keybind
     keybindRects[0] = {200, 200, 150, 40};
     keybindRects[1] = {200, 250, 150, 40};
     selectingKey[0] = selectingKey[1] = false;
 
-    // Khởi tạo nút Save
     saveButton = {250, 320, 100, 40};
-
     draggingVolume = false;
 }
 
@@ -115,7 +110,7 @@ void SettingsMenu::render() {
     SDL_RenderClear(renderer);
 
     blinkTimer++;
-    if (blinkTimer >= 30) {
+    if (blinkTimer >= 20) {
         blinkTimer = 0;
         blinkState = !blinkState;
     }
@@ -126,22 +121,28 @@ void SettingsMenu::render() {
 
     SDL_Texture* volumeText = renderText("Âm lượng:");
     SDL_Rect volumeTextRect = {50, 140, 100, 30};
-    if (selectedItem == 0 && blinkState) SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
-    else SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    if (selectedItem == 0 && blinkState) {
+        SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+        SDL_RenderDrawRect(renderer, &volumeTextRect);
+    }
     SDL_RenderCopy(renderer, volumeText, NULL, &volumeTextRect);
     SDL_DestroyTexture(volumeText);
 
     SDL_Texture* keybindLeftText = renderText("Di chuyển trái:");
     SDL_Rect keybindLeftRect = {50, 200, 150, 30};
-    if (selectedItem == 1 && blinkState) SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
-    else SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    if (selectedItem == 1 && blinkState) {
+        SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+        SDL_RenderDrawRect(renderer, &keybindLeftRect);
+    }
     SDL_RenderCopy(renderer, keybindLeftText, NULL, &keybindLeftRect);
     SDL_DestroyTexture(keybindLeftText);
 
     SDL_Texture* keybindRightText = renderText("Di chuyển phải:");
     SDL_Rect keybindRightRect = {50, 250, 150, 30};
-    if (selectedItem == 2 && blinkState) SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
-    else SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    if (selectedItem == 2 && blinkState) {
+        SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+        SDL_RenderDrawRect(renderer, &keybindRightRect);
+    }
     SDL_RenderCopy(renderer, keybindRightText, NULL, &keybindRightRect);
     SDL_DestroyTexture(keybindRightText);
 
@@ -149,8 +150,10 @@ void SettingsMenu::render() {
     SDL_RenderFillRect(renderer, &saveButton);
     SDL_Texture* saveText = renderText("Lưu");
     SDL_Rect saveTextRect = {saveButton.x + 20, saveButton.y + 10, 50, 30};
-    if (selectedItem == 3 && blinkState) SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
-    else SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    if (selectedItem == 3 && blinkState) {
+        SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+        SDL_RenderDrawRect(renderer, &saveTextRect);
+    }
     SDL_RenderCopy(renderer, saveText, NULL, &saveTextRect);
     SDL_DestroyTexture(saveText);
 
