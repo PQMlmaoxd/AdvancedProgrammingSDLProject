@@ -32,6 +32,9 @@ private:
     void playMusic();
     bool confirmExit(); // Hiển thị hộp thoại xác nhận thoát game
     void loadSettings();
+
+    int blinkTimer;
+    bool blinkState;
 };
 
 #endif

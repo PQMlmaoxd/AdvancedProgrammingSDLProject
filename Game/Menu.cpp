@@ -16,7 +16,7 @@ void Menu::loadSettings() {
     }
 }
 
-Menu::Menu(SDL_Renderer* renderer) : renderer(renderer), selectedOption(0), firstPlay(true) {
+Menu::Menu(SDL_Renderer* renderer) : renderer(renderer), selectedOption(0), firstPlay(true), blinkTimer(0), blinkState(true) {
     font = TTF_OpenFont("src/fonts/arial-unicode-ms.ttf", 28);
     if (!font) {
         std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
@@ -54,15 +54,25 @@ void Menu::renderMenu() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
+    // Cập nhật nhấp nháy
+    blinkTimer++;
+    if (blinkTimer >= 30) {
+        blinkTimer = 0;
+        blinkState = !blinkState;
+    }
+
     for (size_t i = 0; i < options.size(); i++) {
         SDL_Texture* texture = renderText(options[i]);
         int w, h;
         SDL_QueryTexture(texture, NULL, NULL, &w, &h);
 
         SDL_Rect rect = {300, 150 + (int)i * 50, w, h};
+
         if (i == selectedOption) {
-            SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
-            SDL_RenderDrawRect(renderer, &rect);
+            if (blinkState) {
+                SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+                SDL_RenderDrawRect(renderer, &rect);
+            }
         }
 
         SDL_RenderCopy(renderer, texture, NULL, &rect);
