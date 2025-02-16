@@ -226,10 +226,10 @@ int Menu::run() {
             }
         }
 
-        // Kiểm tra nếu nhạc kết thúc thì loop lại từ giây 193.5
+        // Kiểm tra nếu nhạc kết thúc thì loop lại từ giây 
         if (!Mix_PlayingMusic()) {
             Mix_PlayMusic(backgroundMusic, -1);
-            Mix_SetMusicPosition(193.5);
+            Mix_SetMusicPosition(1);
         }
 
         renderMenu();
