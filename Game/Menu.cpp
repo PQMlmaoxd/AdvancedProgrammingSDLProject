@@ -1,7 +1,7 @@
 #include "Menu.h"
 #include <iostream>
 #include <fstream>
-
+#include <SDL2/SDL_image.h>
 void Menu::loadSettings() {
     std::ifstream file("settings.txt");
     if (file.is_open()) {
@@ -35,9 +35,21 @@ Menu::Menu(SDL_Renderer* renderer) : renderer(renderer), selectedOption(0), firs
     if (!backgroundMusic) {
         std::cerr << "Failed to load music: " << Mix_GetError() << std::endl;
     }
+    
+    // Load ảnh nền
+    SDL_Surface* bgSurface = IMG_Load("src/images/menu_background.jpg");
+    if (!bgSurface) {
+        std::cerr << "Failed to load background image: " << IMG_GetError() << std::endl;
+    } else {
+        backgroundTexture = SDL_CreateTextureFromSurface(renderer, bgSurface);
+        SDL_FreeSurface(bgSurface);
+    }
 }
 
 Menu::~Menu() {
+    if (backgroundTexture) {
+        SDL_DestroyTexture(backgroundTexture);
+    }
     Mix_FreeMusic(backgroundMusic);
     Mix_CloseAudio();
     TTF_CloseFont(font);
@@ -53,7 +65,13 @@ SDL_Texture* Menu::renderText(const std::string& text) {
 void Menu::renderMenu() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
-
+    
+    // Vẽ ảnh nền nếu có
+    if (backgroundTexture) {
+        SDL_Rect destRect = {0, 0, 1280, 720};  // Full màn hình 720p
+        SDL_RenderCopy(renderer, backgroundTexture, NULL, &destRect);
+    }
+    
     // Cập nhật nhấp nháy
     blinkTimer++;
     if (blinkTimer >= 30) {

@@ -28,6 +28,7 @@ private:
     bool firstPlay; // Kiểm tra lần đầu chạy
 
     SDL_Texture* renderText(const std::string& text);
+    SDL_Texture* backgroundTexture;  // Ảnh nền cho menu
     void renderMenu();
     void playMusic();
     bool confirmExit(); // Hiển thị hộp thoại xác nhận thoát game
