@@ -72,6 +72,10 @@ void Menu::renderMenu() {
         SDL_RenderCopy(renderer, backgroundTexture, NULL, &destRect);
     }
     
+    SDL_Rect menuBox = {200, 150, 400, 300};  // X, Y, Width, Height
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 180); // Màu đen, độ trong suốt 180
+    SDL_RenderFillRect(renderer, &menuBox);
+
     // Cập nhật nhấp nháy
     blinkTimer++;
     if (blinkTimer >= 30) {
@@ -84,13 +88,13 @@ void Menu::renderMenu() {
         int w, h;
         SDL_QueryTexture(texture, NULL, NULL, &w, &h);
 
-        SDL_Rect rect = {300, 150 + (int)i * 50, w, h};
-
+        // Căn giữa theo chiều ngang
+        SDL_Rect rect = {menuBox.x + (menuBox.w - w) / 2, menuBox.y + 40 + (int)i * 50, w, h};
+        
+        // Nếu được chọn, tạo hiệu ứng viền
         if (i == selectedOption) {
-            if (blinkState) {
-                SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
-                SDL_RenderDrawRect(renderer, &rect);
-            }
+            SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+            SDL_RenderDrawRect(renderer, &rect);
         }
 
         SDL_RenderCopy(renderer, texture, NULL, &rect);
