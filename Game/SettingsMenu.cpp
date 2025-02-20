@@ -72,6 +72,17 @@ void SettingsMenu::handleEvent(SDL_Event& e) {
     }
 
     if (e.type == SDL_KEYDOWN) {
+        if (selectingKey[0]) {  
+            keybinds["left"] = e.key.keysym.sym;
+            selectingKey[0] = false;
+            return;
+        }
+        if (selectingKey[1]) {  
+            keybinds["right"] = e.key.keysym.sym;
+            selectingKey[1] = false;
+            return;
+        }
+
         switch (e.key.keysym.sym) {
             case SDLK_UP:
                 selectedItem = (selectedItem - 1 + 4) % 4;
@@ -82,7 +93,6 @@ void SettingsMenu::handleEvent(SDL_Event& e) {
             case SDLK_LEFT:
                 if (selectedItem == 0 && volume > 0) {
                     volume -= 5;
-                    if (volume < 0) volume = 0;
                     volumeHandle.x = volumeSlider.x + (volume * 3);
                     Mix_VolumeMusic(volume * MIX_MAX_VOLUME / 100);
                 }
@@ -90,13 +100,18 @@ void SettingsMenu::handleEvent(SDL_Event& e) {
             case SDLK_RIGHT:
                 if (selectedItem == 0 && volume < 100) {
                     volume += 5;
-                    if (volume > 100) volume = 100;
                     volumeHandle.x = volumeSlider.x + (volume * 3);
                     Mix_VolumeMusic(volume * MIX_MAX_VOLUME / 100);
                 }
                 break;
             case SDLK_RETURN:
-                if (selectedItem == 3) {
+                if (selectedItem == 1) {  // Chọn keybind trái
+                    selectingKey[0] = true;
+                    std::cout << "Nhấn phím mới cho di chuyển trái..." << std::endl;
+                } else if (selectedItem == 2) {  // Chọn keybind phải
+                    selectingKey[1] = true;
+                    std::cout << "Nhấn phím mới cho di chuyển phải..." << std::endl;
+                } else if (selectedItem == 3) {  // Nút Lưu
                     saveSettings();
                     std::cout << "Settings saved!" << std::endl;
                 }
@@ -104,6 +119,7 @@ void SettingsMenu::handleEvent(SDL_Event& e) {
         }
     }
 }
+
 
 void SettingsMenu::render() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -128,8 +144,9 @@ void SettingsMenu::render() {
     SDL_RenderCopy(renderer, volumeText, NULL, &volumeTextRect);
     SDL_DestroyTexture(volumeText);
 
-    SDL_Texture* keybindLeftText = renderText("Di chuyển trái:");
-    SDL_Rect keybindLeftRect = {50, 200, 150, 30};
+    std::string leftKeyText = selectingKey[0] ? "..." : SDL_GetKeyName(keybinds["left"]);
+    SDL_Texture* keybindLeftText = renderText("Di chuyển trái: " + leftKeyText);
+    SDL_Rect keybindLeftRect = {50, 200, 200, 30};
     if (selectedItem == 1 && blinkState) {
         SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
         SDL_RenderDrawRect(renderer, &keybindLeftRect);
@@ -137,8 +154,9 @@ void SettingsMenu::render() {
     SDL_RenderCopy(renderer, keybindLeftText, NULL, &keybindLeftRect);
     SDL_DestroyTexture(keybindLeftText);
 
-    SDL_Texture* keybindRightText = renderText("Di chuyển phải:");
-    SDL_Rect keybindRightRect = {50, 250, 150, 30};
+    std::string rightKeyText = selectingKey[1] ? "..." : SDL_GetKeyName(keybinds["right"]);
+    SDL_Texture* keybindRightText = renderText("Di chuyển phải: " + rightKeyText);
+    SDL_Rect keybindRightRect = {50, 250, 200, 30};
     if (selectedItem == 2 && blinkState) {
         SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
         SDL_RenderDrawRect(renderer, &keybindRightRect);
@@ -160,14 +178,6 @@ void SettingsMenu::render() {
     SDL_RenderPresent(renderer);
 }
 
-SDL_Texture* SettingsMenu::renderText(const std::string& text) {
-    SDL_Surface* surface = TTF_RenderUTF8_Solid(font, text.c_str(), {255, 255, 255, 255});
-    if (!surface) return nullptr;
-
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    return texture;
-}
 
 void SettingsMenu::saveSettings() {
     std::ofstream file("settings.txt");
@@ -197,4 +207,16 @@ void SettingsMenu::loadSettings() {
         keybinds["left"] = SDLK_LEFT;
         keybinds["right"] = SDLK_RIGHT;
     }
+}
+SDL_Texture* SettingsMenu::renderText(const std::string& text) {
+    SDL_Color color = {255, 255, 255, 255}; // Màu trắng
+    SDL_Surface* surface = TTF_RenderUTF8_Solid(font, text.c_str(), color);
+    if (!surface) {
+        std::cerr << "Failed to render text: " << TTF_GetError() << std::endl;
+        return nullptr;
+    }
+
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    return texture;
 }
