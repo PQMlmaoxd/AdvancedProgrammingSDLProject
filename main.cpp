@@ -59,6 +59,7 @@ int main(int argc, char* argv[]) {
     Menu menu(renderer);
     int choice = menu.run();
     menu.stopMusic();
+
     if (choice == -1 || choice == 3) {
         std::cout << "Game exited.\n";
         SDL_DestroyRenderer(renderer);
@@ -68,6 +69,8 @@ int main(int argc, char* argv[]) {
     }
 
     Player player(100, 300);
+    player.loadKeybinds();  // Load keybind ngay từ đầu
+
     bool running = true;
     SDL_Event e;
 
@@ -84,7 +87,7 @@ int main(int argc, char* argv[]) {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT)
                 running = false;
-            
+
             // Xử lý Pause Menu khi nhấn ESC
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) {
                 PauseMenu pauseMenu(renderer);
@@ -93,7 +96,15 @@ int main(int argc, char* argv[]) {
                 if (pauseChoice == 1) { // Chơi lại
                     player.resetPosition(100, 300); // Reset nhân vật
                 } else if (pauseChoice == 2) { // Quay lại menu chính
-                    return main(argc, argv);
+                    menu = Menu(renderer); // Reset menu trước khi vào lại
+                    choice = menu.run();
+                    menu.stopMusic();
+
+                    if (choice == -1 || choice == 3) { 
+                        running = false; // Thoát game nếu chọn "Thoát"
+                    } else {
+                        player.loadKeybinds(); // 🔥 Cập nhật lại keybinds sau khi vào lại
+                    }
                 } else if (pauseChoice == 3) { // Thoát game
                     running = false;
                 }
