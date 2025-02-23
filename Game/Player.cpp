@@ -1,9 +1,9 @@
 #include "Player.h"
-#include <iostream>  // Thêm để debug lỗi nếu có
+#include <iostream>  
 #include <fstream>  
 
 Player::Player() {
-    rect = {100, 300, 32, 32}; // Vị trí ban đầu
+    rect = {100, 300, 32, 32}; 
     speed = 4;
     velocityY = 0;
     isJumping = false;
@@ -19,22 +19,25 @@ Player::Player(int x, int y) {
 }
 
 void Player::handleInput(const Uint8* keys) {
-    // Đảm bảo keybind tồn tại trước khi sử dụng
     if (keybinds.count("left") && keys[SDL_GetScancodeFromKey(keybinds["left"])]) {
         rect.x -= speed;  
     }
     if (keybinds.count("right") && keys[SDL_GetScancodeFromKey(keybinds["right"])]) {
         rect.x += speed;  
     }
+    if (keybinds.count("jump") && keys[SDL_GetScancodeFromKey(keybinds["jump"])]) {
+        if (!isJumping) {  // Kiểm tra nếu không nhảy mới cho nhảy
+            velocityY = -10;  // Nhảy lên với vận tốc ban đầu
+            isJumping = true;
+        }
+    }
 }
 
 void Player::update() {
-    // Áp dụng trọng lực
-    velocityY += gravity;
+    velocityY += gravity;  
     rect.y += (int)velocityY;
 
-    // Giới hạn nhân vật không rơi qua mặt đất
-    if (rect.y >= 300) {
+    if (rect.y >= 300) {  
         rect.y = 300;
         isJumping = false;
         velocityY = 0;
@@ -58,6 +61,7 @@ void Player::loadKeybinds() {
         std::cerr << "⚠️ Lỗi: Không thể mở file settings.txt! Sử dụng mặc định.\n";
         keybinds["left"] = SDLK_LEFT;
         keybinds["right"] = SDLK_RIGHT;
+        keybinds["jump"] = SDLK_UP;  // Mặc định nhảy là phím mũi tên lên
         return;
     }
 
@@ -68,7 +72,6 @@ void Player::loadKeybinds() {
     }
     file.close();
 
-    // Kiểm tra xem keybind có được đọc thành công không
     if (keybinds.find("left") == keybinds.end()) {
         std::cerr << "⚠️ Không tìm thấy keybind cho LEFT, đặt mặc định.\n";
         keybinds["left"] = SDLK_LEFT;
@@ -77,7 +80,12 @@ void Player::loadKeybinds() {
         std::cerr << "⚠️ Không tìm thấy keybind cho RIGHT, đặt mặc định.\n";
         keybinds["right"] = SDLK_RIGHT;
     }
+    if (keybinds.find("jump") == keybinds.end()) {
+        std::cerr << "⚠️ Không tìm thấy keybind cho JUMP, đặt mặc định.\n";
+        keybinds["jump"] = SDLK_UP;
+    }
 
     std::cout << "✅ Keybinds đã tải: LEFT = " << SDL_GetKeyName(keybinds["left"]) 
-              << ", RIGHT = " << SDL_GetKeyName(keybinds["right"]) << "\n";
+              << ", RIGHT = " << SDL_GetKeyName(keybinds["right"]) 
+              << ", JUMP = " << SDL_GetKeyName(keybinds["jump"]) << "\n";
 }
