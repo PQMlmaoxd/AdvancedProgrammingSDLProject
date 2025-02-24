@@ -24,8 +24,8 @@ private:
 
     SDL_Rect volumeSlider; // Thanh trượt âm lượng
     SDL_Rect volumeHandle; // Nút kéo của slider
-    SDL_Rect keybindRects[2]; // Ô nhập cho 2 keybinds
-    bool selectingKey[2]; // Xác định ô nào đang được chọn
+    SDL_Rect keybindRects[3]; // Ô nhập cho 3 keybinds
+    bool selectingKey[3]; // Xác định ô nào đang được chọn
 
     SDL_Rect saveButton; // Nút Save
 

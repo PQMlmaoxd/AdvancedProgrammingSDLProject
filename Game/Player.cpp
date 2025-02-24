@@ -56,36 +56,22 @@ void Player::resetPosition(int x, int y) {
 
 void Player::loadKeybinds() {
     std::ifstream file("settings.txt");
-
-    if (!file) {  
-        std::cerr << "⚠️ Lỗi: Không thể mở file settings.txt! Sử dụng mặc định.\n";
-        keybinds["left"] = SDLK_LEFT;
-        keybinds["right"] = SDLK_RIGHT;
-        keybinds["jump"] = SDLK_UP;  // Mặc định nhảy là phím mũi tên lên
-        return;
+    if (file.is_open()) {
+        std::string key;
+        int value;
+        while (file >> key >> value) {
+            keybinds[key] = static_cast<SDL_Keycode>(value);
+        }
+        file.close();
     }
 
-    std::string key;
-    int value;
-    while (file >> key >> value) {
-        keybinds[key] = static_cast<SDL_Keycode>(value);
-    }
-    file.close();
+    // Nếu thiếu keybind nào, đặt mặc định
+    if (keybinds.find("left") == keybinds.end()) keybinds["left"] = SDLK_LEFT;
+    if (keybinds.find("right") == keybinds.end()) keybinds["right"] = SDLK_RIGHT;
+    if (keybinds.find("jump") == keybinds.end()) keybinds["jump"] = SDLK_UP;
 
-    if (keybinds.find("left") == keybinds.end()) {
-        std::cerr << "⚠️ Không tìm thấy keybind cho LEFT, đặt mặc định.\n";
-        keybinds["left"] = SDLK_LEFT;
-    }
-    if (keybinds.find("right") == keybinds.end()) {
-        std::cerr << "⚠️ Không tìm thấy keybind cho RIGHT, đặt mặc định.\n";
-        keybinds["right"] = SDLK_RIGHT;
-    }
-    if (keybinds.find("jump") == keybinds.end()) {
-        std::cerr << "⚠️ Không tìm thấy keybind cho JUMP, đặt mặc định.\n";
-        keybinds["jump"] = SDLK_UP;
-    }
-
-    std::cout << "✅ Keybinds đã tải: LEFT = " << SDL_GetKeyName(keybinds["left"]) 
-              << ", RIGHT = " << SDL_GetKeyName(keybinds["right"]) 
-              << ", JUMP = " << SDL_GetKeyName(keybinds["jump"]) << "\n";
+    std::cout << "🎮 Keybinds: LEFT=" << SDL_GetKeyName(keybinds["left"]) 
+              << ", RIGHT=" << SDL_GetKeyName(keybinds["right"]) 
+              << ", JUMP=" << SDL_GetKeyName(keybinds["jump"]) << "\n";
 }
+

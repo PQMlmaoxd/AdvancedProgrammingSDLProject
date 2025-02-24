@@ -236,6 +236,7 @@ int Menu::run() {
                     } else if (selectedOption == 3) {  // Nếu chọn "Settings"
                         SettingsMenu settings(renderer);
                         settings.run();
+                        loadSettings();
                     } else if (selectedOption == 4) {  // Nếu chọn "Thoát"
                         if (confirmExit()) return -1; // Nếu chọn "Đúng", thoát game
                     } else {

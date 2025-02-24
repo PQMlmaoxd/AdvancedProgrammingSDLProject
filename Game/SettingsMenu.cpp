@@ -16,7 +16,8 @@ SettingsMenu::SettingsMenu(SDL_Renderer* renderer) : renderer(renderer), volume(
 
     keybindRects[0] = {200, 200, 150, 40};
     keybindRects[1] = {200, 250, 150, 40};
-    selectingKey[0] = selectingKey[1] = false;
+    keybindRects[2] = {200, 300, 150, 40}; // Thêm khung nhập key cho phím nhảy
+    selectingKey[0] = selectingKey[1] = selectingKey[2] = false;
 
     saveButton = {250, 320, 100, 40};
     draggingVolume = false;
@@ -72,46 +73,42 @@ void SettingsMenu::handleEvent(SDL_Event& e) {
     }
 
     if (e.type == SDL_KEYDOWN) {
-        if (selectingKey[0]) {  
-            keybinds["left"] = e.key.keysym.sym;
-            selectingKey[0] = false;
-            return;
-        }
-        if (selectingKey[1]) {  
-            keybinds["right"] = e.key.keysym.sym;
-            selectingKey[1] = false;
-            return;
+        for (int i = 0; i < 3; i++) {
+            if (selectingKey[i]) {
+                keybinds[i == 0 ? "left" : (i == 1 ? "right" : "jump")] = e.key.keysym.sym;
+                selectingKey[i] = false;
+                return;
+            }
         }
 
         switch (e.key.keysym.sym) {
             case SDLK_UP:
-                selectedItem = (selectedItem - 1 + 4) % 4;
+                selectedItem = (selectedItem - 1 + 5) % 5;  // Cập nhật số lượng mục menu
                 break;
             case SDLK_DOWN:
-                selectedItem = (selectedItem + 1) % 4;
+                selectedItem = (selectedItem + 1) % 5;
                 break;
             case SDLK_LEFT:
-                if (selectedItem == 0 && volume > 0) {
+                if (selectedItem == 0 && volume > 0) {  // Dùng arrow key chỉnh nhạc
                     volume -= 5;
                     volumeHandle.x = volumeSlider.x + (volume * 3);
                     Mix_VolumeMusic(volume * MIX_MAX_VOLUME / 100);
                 }
                 break;
             case SDLK_RIGHT:
-                if (selectedItem == 0 && volume < 100) {
+                if (selectedItem == 0 && volume < 100) {  // Dùng arrow key chỉnh nhạc
                     volume += 5;
                     volumeHandle.x = volumeSlider.x + (volume * 3);
                     Mix_VolumeMusic(volume * MIX_MAX_VOLUME / 100);
                 }
                 break;
             case SDLK_RETURN:
-                if (selectedItem == 1) {  // Chọn keybind trái
-                    selectingKey[0] = true;
-                    std::cout << "Nhấn phím mới cho di chuyển trái..." << std::endl;
-                } else if (selectedItem == 2) {  // Chọn keybind phải
-                    selectingKey[1] = true;
-                    std::cout << "Nhấn phím mới cho di chuyển phải..." << std::endl;
-                } else if (selectedItem == 3) {  // Nút Lưu
+                if (selectedItem >= 1 && selectedItem <= 3) {  // Chọn keybind
+                    selectingKey[selectedItem - 1] = true;
+                    std::cout << "Nhấn phím mới cho " 
+                              << (selectedItem == 1 ? "di chuyển trái..." : (selectedItem == 2 ? "di chuyển phải..." : "nhảy...")) 
+                              << std::endl;
+                } else if (selectedItem == 4) {  // Nút Lưu
                     saveSettings();
                     std::cout << "Settings saved!" << std::endl;
                 }
@@ -119,6 +116,7 @@ void SettingsMenu::handleEvent(SDL_Event& e) {
         }
     }
 }
+
 
 
 void SettingsMenu::render() {
@@ -135,8 +133,9 @@ void SettingsMenu::render() {
     SDL_RenderFillRect(renderer, &volumeSlider);
     SDL_RenderFillRect(renderer, &volumeHandle);
 
-    SDL_Texture* volumeText = renderText("Âm lượng:");
-    SDL_Rect volumeTextRect = {50, 140, 100, 30};
+    // Hiển thị âm lượng với cùng cỡ chữ như keybind
+    SDL_Texture* volumeText = renderText("Âm lượng: " + std::to_string(volume));
+    SDL_Rect volumeTextRect = {50, 140, 200, 30};
     if (selectedItem == 0 && blinkState) {
         SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
         SDL_RenderDrawRect(renderer, &volumeTextRect);
@@ -144,31 +143,29 @@ void SettingsMenu::render() {
     SDL_RenderCopy(renderer, volumeText, NULL, &volumeTextRect);
     SDL_DestroyTexture(volumeText);
 
-    std::string leftKeyText = selectingKey[0] ? "..." : SDL_GetKeyName(keybinds["left"]);
-    SDL_Texture* keybindLeftText = renderText("Di chuyển trái: " + leftKeyText);
-    SDL_Rect keybindLeftRect = {50, 200, 200, 30};
-    if (selectedItem == 1 && blinkState) {
-        SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
-        SDL_RenderDrawRect(renderer, &keybindLeftRect);
-    }
-    SDL_RenderCopy(renderer, keybindLeftText, NULL, &keybindLeftRect);
-    SDL_DestroyTexture(keybindLeftText);
+    // Danh sách keybinds (trái, phải, nhảy) - đồng đều cỡ chữ
+    std::string keyNames[] = { "left", "right", "jump" };
+    std::string keyLabels[] = { "Di chuyển trái", "Di chuyển phải", "Nhảy" };
 
-    std::string rightKeyText = selectingKey[1] ? "..." : SDL_GetKeyName(keybinds["right"]);
-    SDL_Texture* keybindRightText = renderText("Di chuyển phải: " + rightKeyText);
-    SDL_Rect keybindRightRect = {50, 250, 200, 30};
-    if (selectedItem == 2 && blinkState) {
-        SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
-        SDL_RenderDrawRect(renderer, &keybindRightRect);
-    }
-    SDL_RenderCopy(renderer, keybindRightText, NULL, &keybindRightRect);
-    SDL_DestroyTexture(keybindRightText);
+    for (int i = 0; i < 3; i++) {
+        std::string keyText = selectingKey[i] ? "..." : SDL_GetKeyName(keybinds[keyNames[i]]);
+        SDL_Texture* keybindText = renderText(keyLabels[i] + ": " + keyText);
+        SDL_Rect keybindRect = {50, 200 + (i * 50), 250, 30}; // Đồng đều cỡ chữ
 
+        if (selectedItem == i + 1 && blinkState) {
+            SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+            SDL_RenderDrawRect(renderer, &keybindRect);
+        }
+        SDL_RenderCopy(renderer, keybindText, NULL, &keybindRect);
+        SDL_DestroyTexture(keybindText);
+    }
+
+    // Nút Lưu
     SDL_SetRenderDrawColor(renderer, 0, 128, 255, 255);
     SDL_RenderFillRect(renderer, &saveButton);
     SDL_Texture* saveText = renderText("Lưu");
     SDL_Rect saveTextRect = {saveButton.x + 20, saveButton.y + 10, 50, 30};
-    if (selectedItem == 3 && blinkState) {
+    if (selectedItem == 4 && blinkState) {
         SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
         SDL_RenderDrawRect(renderer, &saveTextRect);
     }
@@ -178,16 +175,18 @@ void SettingsMenu::render() {
     SDL_RenderPresent(renderer);
 }
 
-
 void SettingsMenu::saveSettings() {
     std::ofstream file("settings.txt");
     if (file.is_open()) {
-        file << "volume " << volume << std::endl;
+        file << "volume " << volume << std::endl;  // Lưu âm lượng
         file << "left " << keybinds["left"] << std::endl;
         file << "right " << keybinds["right"] << std::endl;
+        file << "jump " << keybinds["jump"] << std::endl;
         file.close();
     }
 }
+
+
 
 void SettingsMenu::loadSettings() {
     std::ifstream file("settings.txt");
@@ -202,12 +201,16 @@ void SettingsMenu::loadSettings() {
             }
         }
         file.close();
-        Mix_VolumeMusic(volume * MIX_MAX_VOLUME / 100);
+        Mix_VolumeMusic(volume * MIX_MAX_VOLUME / 100); // Áp dụng âm lượng
     } else {
         keybinds["left"] = SDLK_LEFT;
         keybinds["right"] = SDLK_RIGHT;
+        keybinds["jump"] = SDLK_UP;  // Mặc định là phím Up
     }
 }
+
+
+
 SDL_Texture* SettingsMenu::renderText(const std::string& text) {
     SDL_Color color = {255, 255, 255, 255}; // Màu trắng
     SDL_Surface* surface = TTF_RenderUTF8_Solid(font, text.c_str(), color);
