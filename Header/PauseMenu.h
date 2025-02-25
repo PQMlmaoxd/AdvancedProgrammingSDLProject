@@ -11,7 +11,7 @@ public:
     PauseMenu(SDL_Renderer* renderer);
     ~PauseMenu();
     int run(); // Hiển thị menu pause và trả về lựa chọn
-
+    bool confirmExit();
 private:
     SDL_Renderer* renderer;
     TTF_Font* font;

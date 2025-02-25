@@ -95,18 +95,13 @@ int main(int argc, char* argv[]) {
 
                 if (pauseChoice == 1) { // Chơi lại
                     player.resetPosition(100, 300); // Reset nhân vật
-                } else if (pauseChoice == 2) { // Quay lại menu chính
-                    menu = Menu(renderer); // Reset menu trước khi vào lại
-                    choice = menu.run();
-                    menu.stopMusic();
-
-                    if (choice == -1 || choice == 3) { 
-                        running = false; // Thoát game nếu chọn "Thoát"
-                    } else {
-                        player.loadKeybinds(); // 🔥 Cập nhật lại keybinds sau khi vào lại
-                    }
-                } else if (pauseChoice == 3) { // Thoát game
-                    running = false;
+                } else if (pauseChoice == -2) { // Quay lại menu chính
+                    // 🛠 Reset toàn bộ trạng thái trước khi vào lại menu
+                    running = false; 
+                }
+                
+                if (!running) { // Nếu đã thoát vòng lặp game, khởi động lại từ đầu
+                    return main(argc, argv); 
                 }
             }
         }
