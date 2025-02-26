@@ -62,13 +62,15 @@ void Player::update() {
 }
 
 void Player::render(SDL_Renderer* renderer) {
-    if (texture) { // 🔹 Vẽ ảnh nhân vật nếu có
-        SDL_RenderCopy(renderer, texture, NULL, &rect);
-    } else { // Nếu ảnh lỗi, vẽ hình chữ nhật đỏ
+    if (texture) { 
+        SDL_Rect renderQuad = {rect.x, rect.y, rect.w * 4, rect.h * 4}; // 🔹 Nhân đôi kích thước
+        SDL_RenderCopy(renderer, texture, NULL, &renderQuad);
+    } else { 
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  
         SDL_RenderFillRect(renderer, &rect);
     }
 }
+
 
 void Player::resetPosition(int x, int y) {
     rect.x = x;
