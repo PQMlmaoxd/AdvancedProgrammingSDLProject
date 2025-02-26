@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    Player player(100, 300);
+    Player player(100, 300, renderer);
     player.loadKeybinds();  // Load keybind ngay từ đầu
 
     bool running = true;

@@ -1,21 +1,24 @@
 #include "Player.h"
 #include <iostream>  
 #include <fstream>  
+#include <SDL2/SDL_image.h>
 
-Player::Player() {
+Player::Player(SDL_Renderer* renderer) : renderer(renderer) { // 🔹 Truyền renderer vào
     rect = {100, 300, 32, 32}; 
     speed = 4;
     velocityY = 0;
     isJumping = false;
     loadKeybinds();  // Nạp keybind khi tạo Player
+    loadTexture(); // 🔹 Tải ảnh nhân vật
 }
 
-Player::Player(int x, int y) {
+Player::Player(int x, int y, SDL_Renderer* renderer) : renderer(renderer) { // 🔹 Truyền renderer vào
     rect = {x, y, 32, 32};
     speed = 4;
     velocityY = 0;
     isJumping = false;
     loadKeybinds();
+    loadTexture(); // 🔹 Tải ảnh nhân vật
 }
 
 void Player::handleInput(const Uint8* keys) {
@@ -33,6 +36,20 @@ void Player::handleInput(const Uint8* keys) {
     }
 }
 
+void Player::loadTexture() {
+    SDL_Surface* surface = IMG_Load("src/images/player.png");  // 🔹 Đổi đường dẫn ảnh tại đây
+    if (!surface) {
+        std::cerr << "⚠️ Lỗi: Không thể tải ảnh nhân vật! " << IMG_GetError() << std::endl;
+        texture = nullptr;
+        return;
+    }
+    texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    if (!texture) {
+        std::cerr << "⚠️ Lỗi: Không thể tạo texture từ ảnh! " << SDL_GetError() << std::endl;
+    }
+}
+
 void Player::update() {
     velocityY += gravity;  
     rect.y += (int)velocityY;
@@ -45,8 +62,12 @@ void Player::update() {
 }
 
 void Player::render(SDL_Renderer* renderer) {
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  
-    SDL_RenderFillRect(renderer, &rect);
+    if (texture) { // 🔹 Vẽ ảnh nhân vật nếu có
+        SDL_RenderCopy(renderer, texture, NULL, &rect);
+    } else { // Nếu ảnh lỗi, vẽ hình chữ nhật đỏ
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  
+        SDL_RenderFillRect(renderer, &rect);
+    }
 }
 
 void Player::resetPosition(int x, int y) {
@@ -75,3 +96,8 @@ void Player::loadKeybinds() {
               << ", JUMP=" << SDL_GetKeyName(keybinds["jump"]) << "\n";
 }
 
+Player::~Player() {
+    if (texture) {
+        SDL_DestroyTexture(texture); // 🔹 Giải phóng bộ nhớ
+    }
+}
