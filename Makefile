@@ -2,8 +2,7 @@ CC = g++
 CFLAGS = -I src/include -I src/include/SDL2 -I Header
 LDFLAGS = -L src/lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_mixer -lSDL2_image
 
-OBJ = main.o Game/Player.o Game/Menu.o Game/PauseMenu.o Game/SettingsMenu.o
-
+OBJ = main.o Game/Player.o Game/Menu.o Game/PauseMenu.o Game/SettingsMenu.o Game/Maze.o
 
 all: game
 
@@ -24,6 +23,9 @@ Game/Player.o: Game/Player.cpp
 
 Game/SettingsMenu.o: Game/SettingsMenu.cpp
 	$(CC) $(CFLAGS) -c Game/SettingsMenu.cpp -o Game/SettingsMenu.o
+
+Game/Maze.o: Game/Maze.cpp Header/Maze.h
+	$(CC) $(CFLAGS) -c Game/Maze.cpp -o Game/Maze.o
 
 clean:
 	rm -f game $(OBJ)

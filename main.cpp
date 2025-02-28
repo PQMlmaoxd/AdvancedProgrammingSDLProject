@@ -7,6 +7,7 @@
 #include <iostream>
 #include <sstream>
 #include "SettingsMenu.h"
+#include "Maze.h"
 
 SDL_Texture* renderText(const std::string &message, TTF_Font *font, SDL_Color color, SDL_Renderer *renderer) {
     SDL_Surface* surface = TTF_RenderText_Solid(font, message.c_str(), color);
@@ -36,7 +37,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    SDL_Window* window = SDL_CreateWindow("2D Platformer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
+    SDL_Window* window = SDL_CreateWindow("Shadow Maze", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
     if (!window) {
         std::cerr << "Failed to create window: " << SDL_GetError() << std::endl;
         return 1;
@@ -68,8 +69,15 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    Player player(100, 300, renderer);
-    player.loadKeybinds();  // Load keybind ngay từ đầu
+    // 🔹 Khởi tạo mê cung
+    Maze maze;
+    maze.generate(); // Tạo mê cung ngẫu nhiên
+
+    // 🔹 Đặt nhân vật vào vị trí xuất phát trong mê cung
+    int playerStartX = maze.getStartX(); 
+    int playerStartY = maze.getStartY();
+    Player player(playerStartX, playerStartY, renderer);
+    player.loadKeybinds();
 
     bool running = true;
     SDL_Event e;
@@ -94,41 +102,38 @@ int main(int argc, char* argv[]) {
                 int pauseChoice = pauseMenu.run();
 
                 if (pauseChoice == 1) { // Chơi lại
-                    player.resetPosition(100, 300); // Reset nhân vật
+                    player.resetPosition(playerStartX, playerStartY);
                 } else if (pauseChoice == -2) { // Quay lại menu chính
-                    // 🛠 Reset toàn bộ trạng thái trước khi vào lại menu
-                    running = false; 
+                    running = false;
                 }
-                
-                if (!running) { // Nếu đã thoát vòng lặp game, khởi động lại từ đầu
-                    return main(argc, argv); 
+
+                if (!running) { 
+                    return main(argc, argv);
                 }
             }
         }
 
         // Nhận input từ bàn phím
         const Uint8* keys = SDL_GetKeyboardState(NULL);
-        player.handleInput(keys);
+        player.handleInput(keys, maze); // 🔹 Cập nhật để kiểm tra va chạm
 
         // Cập nhật game
-        player.update();
+        player.update(maze); 
 
         // Xóa màn hình
-        SDL_SetRenderDrawColor(renderer, 135, 206, 235, 255);
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        // Vẽ nền đất (platform)
-        SDL_SetRenderDrawColor(renderer, 100, 200, 100, 255);
-        SDL_Rect ground = {0, 332, 800, 100};
-        SDL_RenderFillRect(renderer, &ground);
+        // 🔹 Vẽ mê cung
+        maze.render(renderer);
 
-        // Vẽ nhân vật
+        // 🔹 Vẽ nhân vật
         player.render(renderer);
 
         // Tính FPS trung bình mỗi giây
         frameCount++;
         Uint32 currentTime = SDL_GetTicks();
-        if (currentTime - startTime >= 1000) { // Cập nhật mỗi giây
+        if (currentTime - startTime >= 1000) { 
             fps = frameCount / ((currentTime - startTime) / 1000.0f);
             frameCount = 0;
             startTime = currentTime;

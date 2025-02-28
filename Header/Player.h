@@ -3,19 +3,22 @@
 
 #include <SDL.h>
 #include <map>
-#include <string>   
+#include <string>
+#include "Maze.h"  // 🔹 Thêm để sử dụng Maze
 
 class Player {
 public:
-    Player(SDL_Renderer* renderer);  // 🔹 Thêm constructor nhận renderer
-    Player(int x, int y, SDL_Renderer* renderer);  // 🔹 Constructor có vị trí ban đầu
-    void handleInput(const Uint8* keys);
-    void update();
+    Player(SDL_Renderer* renderer);
+    Player(int x, int y, SDL_Renderer* renderer);
+
+    void handleInput(const Uint8* keys, const Maze& maze); // 🔹 Thêm Maze để kiểm tra va chạm
+    void update(const Maze& maze); // 🔹 Cập nhật logic dựa trên mê cung
+
     void render(SDL_Renderer* renderer);
     void resetPosition(int x, int y);
     void loadKeybinds();
-    ~Player();  // 🔹 Giải phóng texture khi hủy đối tượng
-    
+    ~Player();
+
 private:
     SDL_Rect rect;
     int speed;
@@ -23,10 +26,10 @@ private:
     bool isJumping;
     const float gravity = 0.5f;
     std::map<std::string, SDL_Keycode> keybinds;
-    
-    SDL_Texture* texture;  // 🔹 Biến texture để lưu ảnh nhân vật
-    SDL_Renderer* renderer;  // 🔹 Lưu renderer để vẽ
-    void loadTexture();  // 🔹 Hàm tải ảnh
+
+    SDL_Texture* texture;
+    SDL_Renderer* renderer;
+    void loadTexture();
 };
 
 #endif
