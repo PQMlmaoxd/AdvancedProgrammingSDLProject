@@ -1,4 +1,5 @@
 volume 8
 left 97
 right 100
-jump 32
+up 119
+down 115

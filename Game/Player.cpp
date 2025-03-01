@@ -2,13 +2,11 @@
 #include <iostream>
 #include <fstream>
 #include <SDL2/SDL_image.h>
-#include "Maze.h"  // 🔹 Thêm để dùng Maze
+#include "Maze.h"  
 
 Player::Player(SDL_Renderer* renderer) : renderer(renderer) {
-    rect = {100, 300, 32, 32};
+    rect = {100, 100, 32, 32}; // 🔹 Đặt lại vị trí mặc định
     speed = 4;
-    velocityY = 0;
-    isJumping = false;
     loadKeybinds();
     loadTexture();
 }
@@ -16,13 +14,11 @@ Player::Player(SDL_Renderer* renderer) : renderer(renderer) {
 Player::Player(int x, int y, SDL_Renderer* renderer) : renderer(renderer) {
     rect = {x, y, 32, 32};
     speed = 4;
-    velocityY = 0;
-    isJumping = false;
     loadKeybinds();
     loadTexture();
 }
 
-// 🔹 Cập nhật để kiểm tra va chạm mê cung
+// 🔹 Xử lý di chuyển (loại bỏ nhảy)
 void Player::handleInput(const Uint8* keys, const Maze& maze) {
     SDL_Rect newPos = rect;
 
@@ -32,11 +28,11 @@ void Player::handleInput(const Uint8* keys, const Maze& maze) {
     if (keybinds.count("right") && keys[SDL_GetScancodeFromKey(keybinds["right"])]) {
         newPos.x += speed;
     }
-    if (keybinds.count("jump") && keys[SDL_GetScancodeFromKey(keybinds["jump"])]) {
-        if (!isJumping) {
-            velocityY = -10;
-            isJumping = true;
-        }
+    if (keybinds.count("up") && keys[SDL_GetScancodeFromKey(keybinds["up"])]) {
+        newPos.y -= speed;
+    }
+    if (keybinds.count("down") && keys[SDL_GetScancodeFromKey(keybinds["down"])]) {
+        newPos.y += speed;
     }
 
     // 🔹 Kiểm tra va chạm trước khi cập nhật vị trí
@@ -46,16 +42,7 @@ void Player::handleInput(const Uint8* keys, const Maze& maze) {
 }
 
 void Player::update(const Maze& maze) {
-    velocityY += gravity;
-    SDL_Rect newPos = rect;
-    newPos.y += (int)velocityY;
-
-    if (!maze.checkCollision(newPos)) {
-        rect = newPos;
-    } else {
-        velocityY = 0;
-        isJumping = false;
-    }
+    // 🔹 Không cần xử lý trọng lực nữa
 }
 
 void Player::render(SDL_Renderer* renderer) {
@@ -84,9 +71,11 @@ void Player::loadKeybinds() {
         file.close();
     }
 
+    // 🔹 Nếu thiếu keybind nào, đặt mặc định là phím mũi tên
     if (keybinds.find("left") == keybinds.end()) keybinds["left"] = SDLK_LEFT;
     if (keybinds.find("right") == keybinds.end()) keybinds["right"] = SDLK_RIGHT;
-    if (keybinds.find("jump") == keybinds.end()) keybinds["jump"] = SDLK_UP;
+    if (keybinds.find("up") == keybinds.end()) keybinds["up"] = SDLK_UP;
+    if (keybinds.find("down") == keybinds.end()) keybinds["down"] = SDLK_DOWN;
 }
 
 Player::~Player() {
@@ -94,8 +83,9 @@ Player::~Player() {
         SDL_DestroyTexture(texture);
     }
 }
+
 void Player::loadTexture() {
-    SDL_Surface* surface = IMG_Load("src/images/player.png");  // 🔹 Đổi đường dẫn ảnh tại đây
+    SDL_Surface* surface = IMG_Load("src/images/player.png");
     if (!surface) {
         std::cerr << "⚠️ Lỗi: Không thể tải ảnh nhân vật! " << IMG_GetError() << std::endl;
         texture = nullptr;
@@ -107,4 +97,3 @@ void Player::loadTexture() {
         std::cerr << "⚠️ Lỗi: Không thể tạo texture từ ảnh! " << SDL_GetError() << std::endl;
     }
 }
-
