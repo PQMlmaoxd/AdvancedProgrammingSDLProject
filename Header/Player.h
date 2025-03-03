@@ -11,20 +11,20 @@ public:
     Player(SDL_Renderer* renderer);
     Player(int x, int y, SDL_Renderer* renderer);
 
-    void handleInput(const Uint8* keys, const Maze& maze); // 🔹 Thêm Maze để kiểm tra va chạm
-    void update(const Maze& maze); // 🔹 Cập nhật logic dựa trên mê cung
+    void handleInput(const Uint8* keys, const Maze& maze); // 🔹 Kiểm tra va chạm với mê cung
+    void update(const Maze& maze); // 🔹 Cập nhật logic di chuyển
 
     void render(SDL_Renderer* renderer);
     void resetPosition(int x, int y);
     void loadKeybinds();
+    bool savePosition(const std::string& filename); // 🔹 Lưu vị trí người chơi
+    bool loadPosition(const std::string& filename); // 🔹 Tải vị trí từ file save
+
     ~Player();
 
 private:
     SDL_Rect rect;
     int speed;
-    float velocityY;
-    bool isJumping;
-    const float gravity = 0.5f;
     std::map<std::string, SDL_Keycode> keybinds;
 
     SDL_Texture* texture;

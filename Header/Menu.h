@@ -12,9 +12,15 @@ class Menu {
 public:
     Menu(SDL_Renderer* renderer);
     ~Menu();
-    int run();  // Chạy menu và chờ người dùng chọn
-    void showGuide(); // Thêm hàm hiển thị hướng dẫn
-    void stopMusic(); // Thêm hàm dừng nhạc
+    int run();  // Chạy menu chính
+    int chooseGameMode(); // 🔹 Chọn Singleplayer hoặc 2 Players
+    int chooseNewOrLoad(); // 🔹 Chọn New Game hoặc Load Game
+    void showGuide();
+    void stopMusic();
+    bool selectGameMode(); // Chọn New Game hoặc Load Game
+    int selectSaveSlot();  // Chọn Save Slot
+    std::string chooseSaveFile(); // ✅ Khai báo chooseSaveFile
+    void renderSubMenu(const std::vector<std::string>& options, int selected); // ✅ Khai báo renderSubMenu
 
 private:
     SDL_Renderer* renderer;
@@ -22,16 +28,15 @@ private:
     SDL_Color textColor;
     std::vector<std::string> options;
     int selectedOption;
-    
-    // Biến xử lý nhạc
+
     Mix_Music* backgroundMusic;
-    bool firstPlay; // Kiểm tra lần đầu chạy
+    bool firstPlay;
 
     SDL_Texture* renderText(const std::string& text);
-    SDL_Texture* backgroundTexture;  // Ảnh nền cho menu
+    SDL_Texture* backgroundTexture;
     void renderMenu();
     void playMusic();
-    bool confirmExit(); // Hiển thị hộp thoại xác nhận thoát game
+    bool confirmExit();
     void loadSettings();
 
     int blinkTimer;

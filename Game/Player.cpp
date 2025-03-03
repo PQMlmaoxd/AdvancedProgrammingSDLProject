@@ -5,7 +5,9 @@
 #include "Maze.h"  
 
 Player::Player(SDL_Renderer* renderer) : renderer(renderer) {
-    rect = {100, 100, 32, 32}; // 🔹 Đặt lại vị trí mặc định
+    if (!loadPosition("save.txt")) { // 🔹 Nếu không có file save, đặt vị trí mặc định
+        rect = {100, 100, 32, 32};
+    }
     speed = 4;
     loadKeybinds();
     loadTexture();
@@ -18,7 +20,6 @@ Player::Player(int x, int y, SDL_Renderer* renderer) : renderer(renderer) {
     loadTexture();
 }
 
-// 🔹 Xử lý di chuyển (loại bỏ nhảy)
 void Player::handleInput(const Uint8* keys, const Maze& maze) {
     SDL_Rect newPos = rect;
 
@@ -38,6 +39,7 @@ void Player::handleInput(const Uint8* keys, const Maze& maze) {
     // 🔹 Kiểm tra va chạm trước khi cập nhật vị trí
     if (!maze.checkCollision(newPos)) {
         rect = newPos;
+        savePosition("save.txt"); // 🔹 Lưu vị trí mỗi khi di chuyển hợp lệ
     }
 }
 
@@ -58,6 +60,7 @@ void Player::render(SDL_Renderer* renderer) {
 void Player::resetPosition(int x, int y) {
     rect.x = x;
     rect.y = y;
+    savePosition("save.txt"); // 🔹 Lưu vị trí ngay khi reset
 }
 
 void Player::loadKeybinds() {
@@ -76,6 +79,26 @@ void Player::loadKeybinds() {
     if (keybinds.find("right") == keybinds.end()) keybinds["right"] = SDLK_RIGHT;
     if (keybinds.find("up") == keybinds.end()) keybinds["up"] = SDLK_UP;
     if (keybinds.find("down") == keybinds.end()) keybinds["down"] = SDLK_DOWN;
+}
+
+bool Player::savePosition(const std::string& filename) {
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "⚠️ Lỗi: Không thể lưu vị trí người chơi!\n";
+        return false;
+    }
+    file << rect.x << " " << rect.y;
+    file.close();
+    return true;
+}
+
+bool Player::loadPosition(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) return false;
+
+    file >> rect.x >> rect.y;
+    file.close();
+    return true;
 }
 
 Player::~Player() {
