@@ -5,7 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
-#include <sys/stat.h>
+#include <direct.h>
 #include <sys/types.h>
 
 struct Edge {
@@ -78,7 +78,7 @@ void Maze::render(SDL_Renderer* renderer) {
 }
 
 void Maze::saveMaze(const std::string& filename) {
-    mkdir("Save", 0777);
+    _mkdir("Save");
     std::ofstream file(filename);
     if (!file.is_open()) {
         std::cerr << "⚠️ Lỗi: Không thể lưu mê cung vào file!\n";

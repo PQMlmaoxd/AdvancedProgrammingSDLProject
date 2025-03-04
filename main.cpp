@@ -4,7 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>  // Để kiểm tra file
-
+#include "Utils.h"
 #ifdef _WIN32
     #include <direct.h>  // Windows: _mkdir
 #else
@@ -24,15 +24,6 @@ SDL_Texture* renderText(const std::string &message, TTF_Font *font, SDL_Color co
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
     return texture;
-}
-
-// Hàm kiểm tra và tạo thư mục Save nếu chưa có
-void createSaveDirectory() {
-    #ifdef _WIN32
-        _mkdir("Save");
-    #else
-        mkdir("Save", 0777);
-    #endif
 }
 
 int main(int argc, char* argv[]) {

@@ -37,6 +37,7 @@ private:
     int findSet(int v);
     void unionSets(int a, int b);
     void initializeMaze(); // 🔹 Khởi tạo mê cung toàn tường
+    std::string getLatestSave();
 };
 
 #endif
