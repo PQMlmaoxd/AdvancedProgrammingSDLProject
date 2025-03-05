@@ -160,8 +160,8 @@ bool Menu::selectGameMode() {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        SDL_Texture* newGameText = renderText(selected == 0 ? "> New Game <" : "New Game");
-        SDL_Texture* loadGameText = renderText(selected == 1 ? "> Load Game <" : "Load Game");
+        SDL_Texture* newGameText = renderText(selected == 0 ? "> New Game <" : "New Game", {255, 255, 255, 255});
+        SDL_Texture* loadGameText = renderText(selected == 1 ? "> Load Game <" : "Load Game", {255, 255, 255, 255});
 
         SDL_Rect newGameRect = {300, 200, 200, 40};
         SDL_Rect loadGameRect = {300, 300, 200, 40};
@@ -202,7 +202,7 @@ int Menu::selectSaveSlot() {
         SDL_RenderClear(renderer);
 
         std::string slotText = "Save Slot: " + std::to_string(selectedSlot);
-        SDL_Texture* slotTexture = renderText(slotText);
+        SDL_Texture* slotTexture = renderText(slotText, {255, 255, 255, 255});
         SDL_Rect slotRect = {300, 250, 200, 40};
 
         SDL_RenderCopy(renderer, slotTexture, NULL, &slotRect);
@@ -218,7 +218,7 @@ void Menu::renderSubMenu(const std::vector<std::string>& options, int selected) 
     SDL_RenderClear(renderer);
 
     for (size_t i = 0; i < options.size(); i++) {
-        SDL_Texture* texture = renderText(i == selected ? "> " + options[i] + " <" : options[i]);
+        SDL_Texture* texture = renderText(i == selected ? "> " + options[i] + " <" : options[i], {255, 255, 255, 255});
         SDL_Rect rect = {300, 200 + (int)i * 50, 200, 40};
         SDL_RenderCopy(renderer, texture, NULL, &rect);
         SDL_DestroyTexture(texture);
@@ -271,7 +271,7 @@ void Menu::showGuide() {
 
         int yOffset = 100;
         for (const std::string& line : guideText) {
-            SDL_Texture* textTexture = renderText(line);
+            SDL_Texture* textTexture = renderText(line, {255, 255, 255, 255});
             if (textTexture) {
                 SDL_Rect textRect = {100, yOffset, 600, 30};
                 SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
@@ -314,13 +314,13 @@ bool Menu::confirmExit() {
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
             SDL_RenderClear(renderer);
     
-            SDL_Texture* message = renderText("Bạn thực sự muốn thoát game?");
+            SDL_Texture* message = renderText("Bạn thực sự muốn thoát game?", {255, 255, 255, 255});
             SDL_Rect messageRect = {200, 200, 400, 50};
             SDL_RenderCopy(renderer, message, NULL, &messageRect);
             SDL_DestroyTexture(message);
     
-            SDL_Texture* yesText = renderText(selected == 1 ? "> Đúng <" : "Đúng");
-            SDL_Texture* noText = renderText(selected == 0 ? "> Không <" : "Không");
+            SDL_Texture* yesText = renderText(selected == 1 ? "> Đúng <" : "Đúng", {255, 255, 255, 255});
+            SDL_Texture* noText = renderText(selected == 0 ? "> Không <" : "Không", {255, 255, 255, 255});
             SDL_Rect yesRect = {250, 300, 100, 40};
             SDL_Rect noRect = {450, 300, 100, 40};
             SDL_RenderCopy(renderer, yesText, NULL, &yesRect);
@@ -333,8 +333,8 @@ bool Menu::confirmExit() {
 
     return false;
 }
-SDL_Texture* Menu::renderText(const std::string& text) {
-    SDL_Surface* surface = TTF_RenderUTF8_Solid(font, text.c_str(), textColor);
+SDL_Texture* Menu::renderText(const std::string& text, SDL_Color color) {
+    SDL_Surface* surface = TTF_RenderUTF8_Solid(font, text.c_str(), color);
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
     return texture;
@@ -350,15 +350,22 @@ void Menu::renderMenu() {
         SDL_RenderCopy(renderer, backgroundTexture, NULL, &destRect);
     }
 
-    // Cập nhật nhấp nháy
+    // Cập nhật hiệu ứng nhấp nháy
     blinkTimer++;
-    if (blinkTimer >= 30) {
+    if (blinkTimer >= 30) {  // Mỗi 30 frame đổi trạng thái nhấp nháy
         blinkTimer = 0;
         blinkState = !blinkState;
     }
 
     for (size_t i = 0; i < options.size(); i++) {
-        SDL_Texture* texture = renderText(options[i]);
+        // Mục được chọn sẽ nhấp nháy
+        if (i == selectedOption && !blinkState) continue;
+
+        // Đổi màu nếu đang chọn
+        SDL_Color color = (i == selectedOption) ? SDL_Color{255, 255, 0, 255}  // Màu vàng khi chọn
+                                                 : SDL_Color{255, 255, 255, 255}; // Màu trắng mặc định
+        
+        SDL_Texture* texture = renderText(options[i], {255, 255, 255, 255});
         int w, h;
         SDL_QueryTexture(texture, NULL, NULL, &w, &h);
 
@@ -367,5 +374,6 @@ void Menu::renderMenu() {
         SDL_RenderCopy(renderer, texture, NULL, &rect);
         SDL_DestroyTexture(texture);
     }
+
     SDL_RenderPresent(renderer);
 }

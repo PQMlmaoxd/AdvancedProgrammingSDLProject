@@ -32,7 +32,7 @@ private:
     Mix_Music* backgroundMusic;
     bool firstPlay;
 
-    SDL_Texture* renderText(const std::string& text);
+    SDL_Texture* renderText(const std::string& text, SDL_Color color);
     SDL_Texture* backgroundTexture;
     void renderMenu();
     void playMusic();
