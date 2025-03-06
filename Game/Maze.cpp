@@ -12,6 +12,10 @@ struct Edge {
     int x1, y1, x2, y2;
 };
 
+const int rows = 15;
+const int cols = 20;
+const int tileSize = 40;  // 🔹 Đảm bảo mỗi ô có kích thước 40px
+
 Maze::Maze() {
     std::string latestSave = getLatestSave();
     if (!latestSave.empty() && loadMaze(latestSave)) {
@@ -24,32 +28,32 @@ Maze::Maze() {
 void Maze::generate() {
     srand(time(0));
 
-    for (int i = 0; i < 15; i++) {
-        for (int j = 0; j < 20; j++) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
             maze[i][j] = 1;
         }
     }
 
     std::vector<Edge> edges;
-    for (int i = 1; i < 15; i += 2) {
-        for (int j = 1; j < 20; j += 2) {
+    for (int i = 1; i < rows; i += 2) {
+        for (int j = 1; j < cols; j += 2) {
             maze[i][j] = 0;
-            if (i + 2 < 15) edges.push_back({j, i, j, i + 2});
-            if (j + 2 < 20) edges.push_back({j, i, j + 2, i});
+            if (i + 2 < rows) edges.push_back({j, i, j, i + 2});
+            if (j + 2 < cols) edges.push_back({j, i, j + 2, i});
         }
     }
 
     std::random_shuffle(edges.begin(), edges.end());
 
-    parent.resize(15 * 20);
-    rank.resize(15 * 20, 0);
-    for (int i = 0; i < 15 * 20; i++) {
+    parent.resize(rows * cols);
+    rank.resize(rows * cols, 0);
+    for (int i = 0; i < rows * cols; i++) {
         parent[i] = i;
     }
 
     for (const auto& e : edges) {
-        int cell1 = e.y1 * 20 + e.x1;
-        int cell2 = e.y2 * 20 + e.x2;
+        int cell1 = e.y1 * cols + e.x1;
+        int cell2 = e.y2 * cols + e.x2;
 
         if (findSet(cell1) != findSet(cell2)) {
             unionSets(cell1, cell2);
@@ -65,10 +69,9 @@ void Maze::generate() {
 }
 
 void Maze::render(SDL_Renderer* renderer) {
-    int tileSize = 32;
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    for (int i = 0; i < 15; i++) {
-        for (int j = 0; j < 20; j++) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
             if (maze[i][j] == 1) {
                 SDL_Rect cell = { j * tileSize, i * tileSize, tileSize, tileSize };
                 SDL_RenderFillRect(renderer, &cell);
@@ -85,8 +88,8 @@ void Maze::saveMaze(const std::string& filename) {
         return;
     }
 
-    for (int i = 0; i < 15; i++) {
-        for (int j = 0; j < 20; j++) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
             file << maze[i][j] << " ";
         }
         file << "\n";
@@ -98,8 +101,8 @@ bool Maze::loadMaze(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) return false;
 
-    for (int i = 0; i < 15; i++) {
-        for (int j = 0; j < 20; j++) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
             file >> maze[i][j];
         }
     }
@@ -117,17 +120,16 @@ std::string Maze::getLatestSave() {
     return "";
 }
 
-int Maze::getStartX() const { return startX * 32; }
-int Maze::getStartY() const { return startY * 32; }
+int Maze::getStartX() const { return startX * tileSize; }
+int Maze::getStartY() const { return startY * tileSize; }
 
 bool Maze::checkCollision(const SDL_Rect& playerRect) const {
-    int tileSize = 32;
     int x1 = playerRect.x / tileSize;
     int y1 = playerRect.y / tileSize;
-    int x2 = (playerRect.x + playerRect.w - 1) / tileSize;  // Kiểm tra cạnh phải
-    int y2 = (playerRect.y + playerRect.h - 1) / tileSize;  // Kiểm tra cạnh dưới
+    int x2 = (playerRect.x + playerRect.w - 1) / tileSize;
+    int y2 = (playerRect.y + playerRect.h - 1) / tileSize;
 
-    if (x1 < 0 || x2 >= 20 || y1 < 0 || y2 >= 15) return true;
+    if (x1 < 0 || x2 >= cols || y1 < 0 || y2 >= rows) return true;
     return maze[y1][x1] == 1 || maze[y1][x2] == 1 || maze[y2][x1] == 1 || maze[y2][x2] == 1;
 }
 
