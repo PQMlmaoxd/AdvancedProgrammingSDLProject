@@ -15,7 +15,7 @@ Player::Player(SDL_Renderer* renderer) : renderer(renderer) {
 
 Player::Player(int x, int y, SDL_Renderer* renderer) : renderer(renderer) {
     rect = {x, y, 32, 32};
-    speed = 4;
+    speed = 1;
     loadKeybinds();
     loadTexture();
 }
@@ -49,7 +49,7 @@ void Player::update(const Maze& maze) {
 
 void Player::render(SDL_Renderer* renderer) {
     if (texture) {
-        SDL_Rect renderQuad = {rect.x, rect.y, rect.w * 4, rect.h * 4};
+        SDL_Rect renderQuad = {rect.x, rect.y, rect.w, rect.h};
         SDL_RenderCopy(renderer, texture, NULL, &renderQuad);
     } else {
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);

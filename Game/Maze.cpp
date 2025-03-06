@@ -122,11 +122,13 @@ int Maze::getStartY() const { return startY * 32; }
 
 bool Maze::checkCollision(const SDL_Rect& playerRect) const {
     int tileSize = 32;
-    int x = playerRect.x / tileSize;
-    int y = playerRect.y / tileSize;
+    int x1 = playerRect.x / tileSize;
+    int y1 = playerRect.y / tileSize;
+    int x2 = (playerRect.x + playerRect.w - 1) / tileSize;  // Kiểm tra cạnh phải
+    int y2 = (playerRect.y + playerRect.h - 1) / tileSize;  // Kiểm tra cạnh dưới
 
-    if (x < 0 || x >= 20 || y < 0 || y >= 15) return true;
-    return maze[y][x] == 1;
+    if (x1 < 0 || x2 >= 20 || y1 < 0 || y2 >= 15) return true;
+    return maze[y1][x1] == 1 || maze[y1][x2] == 1 || maze[y2][x1] == 1 || maze[y2][x2] == 1;
 }
 
 int Maze::findSet(int v) {
