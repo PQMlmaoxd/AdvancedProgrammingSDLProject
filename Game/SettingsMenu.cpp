@@ -12,8 +12,8 @@ SettingsMenu::SettingsMenu(SDL_Renderer* renderer)
 
     loadSettings();
 
-    volumeSlider = {200, 150, 300, 10};
-    volumeHandle = {200 + (volume * 3), 140, 20, 30};
+    volumeSlider = {250, 150, 300, 10};
+    volumeHandle = {volumeSlider.x + (volume * 3), 140, 20, 30};
 
     // 🔹 Khung nhập keybind (thêm lên/xuống)
     keybindRects[0] = {200, 200, 150, 40}; // Trái
@@ -139,6 +139,12 @@ void SettingsMenu::render() {
     SDL_RenderCopy(renderer, volumeText, NULL, &volumeTextRect);
     SDL_DestroyTexture(volumeText);
 
+    // 🔹 Nếu mục "Âm Lượng" đang được chọn, vẽ viền vàng nhấp nháy
+    if (selectedItem == 0 && blinkState) {
+        SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+        SDL_RenderDrawRect(renderer, &volumeSlider);
+    }
+
     std::string keyNames[] = { "left", "right", "up", "down" };
     std::string keyLabels[] = { "Di chuyển trái", "Di chuyển phải", "Di chuyển lên", "Di chuyển xuống" };
 
@@ -162,6 +168,12 @@ void SettingsMenu::render() {
     SDL_RenderCopy(renderer, saveText, NULL, &saveTextRect);
     SDL_DestroyTexture(saveText);
 
+    // 🔹 Nếu đang chọn "Lưu", vẽ viền vàng nhấp nháy
+    if (selectedItem == 5 && blinkState) {
+        SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+        SDL_RenderDrawRect(renderer, &saveButton);
+    }
+
     SDL_RenderPresent(renderer);
 }
 
@@ -183,8 +195,14 @@ void SettingsMenu::loadSettings() {
         std::string key;
         int value;
         while (file >> key >> value) {
-            keybinds[key] = static_cast<SDL_Keycode>(value);
+            if (key == "volume") {
+                volume = value;  // 🔹 Cập nhật volume từ file
+            } else {
+                keybinds[key] = static_cast<SDL_Keycode>(value);
+            }
         }
+        volumeHandle.x = volumeSlider.x + (volume * 3);  // 🔹 Cập nhật vị trí nút điều chỉnh
+        Mix_VolumeMusic(volume * MIX_MAX_VOLUME / 100);  // 🔹 Cập nhật âm lượng nhạc nền
         file.close();
         Mix_VolumeMusic(volume * MIX_MAX_VOLUME / 100);
     }
