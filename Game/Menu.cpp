@@ -137,6 +137,10 @@ int Menu::run() {
                 }
             }
         }
+         // 🔄 Nếu nhạc dừng, phát lại
+        if (!Mix_PlayingMusic()) {
+            playMusic();
+        }
         renderMenu();
         SDL_Delay(16);
     }
@@ -245,7 +249,7 @@ Menu::~Menu() {
 
 void Menu::playMusic() {
     if (!Mix_PlayingMusic()) { // Nếu nhạc chưa chạy
-        Mix_PlayMusic(backgroundMusic, 1); // Chạy 1 lần đầu tiên
+        Mix_PlayMusic(backgroundMusic, -1); // Chạy 1 lần đầu tiên
     }
 }
 
