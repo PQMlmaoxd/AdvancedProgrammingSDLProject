@@ -104,7 +104,6 @@ std::string Menu::chooseSaveFile() {
     }
 }
 
-
 int Menu::run() {
     bool running = true;
     SDL_Event e;
@@ -370,10 +369,10 @@ void Menu::renderMenu() {
         blinkTimer = 0;
         blinkState = !blinkState;
     }
+    
+    SDL_Rect highlightRect; // Hình chữ nhật bao quanh lựa chọn đang chọn
 
     for (size_t i = 0; i < options.size(); i++) {
-        // Mục được chọn sẽ nhấp nháy
-        if (i == selectedOption && !blinkState) continue;
 
         // Đổi màu nếu đang chọn
         SDL_Color color = (i == selectedOption) ? SDL_Color{255, 255, 0, 255}  // Màu vàng khi chọn
@@ -387,6 +386,17 @@ void Menu::renderMenu() {
         SDL_Rect rect = { (800 - w) / 2, 200 + (int)i * 60, w, h };
         SDL_RenderCopy(renderer, texture, NULL, &rect);
         SDL_DestroyTexture(texture);
+
+        // Nếu là mục đang chọn, lưu tọa độ để vẽ hình chữ nhật
+        if (i == selectedOption) {
+            highlightRect = { rect.x - 10, rect.y - 5, rect.w + 20, rect.h + 10 };
+        }
+    }
+
+    // 🔲 Vẽ hình chữ nhật highlight nếu nhấp nháy (blinkState == true)
+    if (blinkState) {
+        SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // Màu vàng
+        SDL_RenderDrawRect(renderer, &highlightRect);
     }
 
     SDL_RenderPresent(renderer);
