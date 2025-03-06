@@ -32,13 +32,18 @@ Menu::Menu(SDL_Renderer* renderer) : renderer(renderer), selectedOption(0), firs
         std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
     }
 
-    textColor = {255, 255, 255, 255};
-    options = {"Singleplayer", "2 Players", "Guide", "Settings", "Thoát"};
-
+    // Khởi tạo SDL_mixer
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+        std::cerr << "SDL_mixer could not initialize! Error: " << Mix_GetError() << std::endl;
+    }
+    loadSettings(); // Load settings ngay khi game khởi động
     backgroundMusic = Mix_LoadMUS("src/audio/menu_music.mp3");
     if (!backgroundMusic) {
         std::cerr << "Failed to load music: " << Mix_GetError() << std::endl;
     }
+
+    textColor = {255, 255, 255, 255};
+    options = {"Singleplayer", "2 Players", "Guide", "Settings", "Thoát"};
 
     SDL_Surface* bgSurface = IMG_Load("src/images/menu_background.jpg");
     if (!bgSurface) {
@@ -137,6 +142,7 @@ int Menu::run() {
     }
     return -1;
 }
+
 bool Menu::selectGameMode() {
     SDL_Event e;
     int selected = 0; // 0 = New Game, 1 = Load Game
@@ -176,6 +182,7 @@ bool Menu::selectGameMode() {
     }
     return false;
 }
+
 int Menu::selectSaveSlot() {
     SDL_Event e;
     int selectedSlot = 1;
@@ -235,6 +242,7 @@ Menu::~Menu() {
     Mix_CloseAudio();
     TTF_CloseFont(font);
 }
+
 void Menu::playMusic() {
     if (!Mix_PlayingMusic()) { // Nếu nhạc chưa chạy
         Mix_PlayMusic(backgroundMusic, 1); // Chạy 1 lần đầu tiên
@@ -282,6 +290,7 @@ void Menu::showGuide() {
         SDL_RenderPresent(renderer);
     }
 }
+
 void Menu::stopMusic() {
     if (Mix_PlayingMusic()) {
         Mix_HaltMusic(); // Dừng nhạc ngay lập tức
@@ -333,6 +342,7 @@ bool Menu::confirmExit() {
 
     return false;
 }
+
 SDL_Texture* Menu::renderText(const std::string& text, SDL_Color color) {
     SDL_Surface* surface = TTF_RenderUTF8_Solid(font, text.c_str(), color);
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
