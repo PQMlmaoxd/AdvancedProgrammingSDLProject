@@ -30,6 +30,11 @@ private:
     SDL_Texture* texture;
     SDL_Renderer* renderer;
     void loadTexture();
+
+    Uint32 lastMoveTime = 0;           // Thời gian di chuyển cuối cùng
+    const Uint32 moveDelay = 150;      // Delay 150 ms giữa các lần di chuyển
+    int tileSize = 40;                 // Nếu tileSize của maze là 32, thay đổi nếu cần
+
 };
 
 #endif
