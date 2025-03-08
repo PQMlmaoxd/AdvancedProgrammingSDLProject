@@ -16,13 +16,15 @@ const int rows = 15;
 const int cols = 20;
 const int tileSize = 40;  // 🔹 Đảm bảo mỗi ô có kích thước 40px
 
-Maze::Maze() {
-    std::string latestSave = getLatestSave();
-    if (!latestSave.empty() && loadMaze(latestSave)) {
-        std::cout << "Loaded " << latestSave << "\n";
-    } else {
-        generate();
+Maze::Maze(bool forceNew) {
+    if (!forceNew) {
+        std::string latestSave = getLatestSave();
+        if (!latestSave.empty() && loadMaze(latestSave)) {
+            std::cout << "Loaded " << latestSave << "\n";
+            return;
+        }
     }
+    generate();
 }
 
 void Maze::generate() {
@@ -65,7 +67,6 @@ void Maze::generate() {
     startY = 1;
     maze[startY][startX] = 0;
 
-    saveMaze("Save/Save1.txt");
 }
 
 void Maze::render(SDL_Renderer* renderer) {

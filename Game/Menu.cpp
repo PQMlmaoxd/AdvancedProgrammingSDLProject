@@ -1,4 +1,5 @@
 #include "Menu.h"
+#include "Maze.h"
 #include "Utils.h"
 #include <iostream>
 #include <fstream>
@@ -111,6 +112,9 @@ int Menu::run() {
     bool running = true;
     SDL_Event e;
     playMusic();
+    // Tạo một đối tượng Maze (nếu cần cho Load Game, không dùng trong New Game)
+    Maze loadedMaze;  
+
 
     while (running) {
         while (SDL_PollEvent(&e)) {
@@ -122,15 +126,17 @@ int Menu::run() {
                     selectedOption = (selectedOption + 1) % options.size();
                 if (e.key.keysym.sym == SDLK_RETURN) {
                     if (selectedOption == 0 || selectedOption == 1) {
-                        int gameMode = selectedOption;
+                        int gameMode = selectedOption; 
                         int choice = chooseNewOrLoad();
                         if (choice == 0) {  // New Game
-                            // Gọi hàm nhập tên file save từ Utils
                             std::string saveFileName = promptForSaveName(renderer, font);
                             if (!saveFileName.empty()) {
                                 std::string fullPath = "Save/" + saveFileName + ".txt";
+                                // Tạo mê cung mới và lưu với tên file đã nhập
+                                maze.generate();
+                                maze.saveMaze(fullPath);
                                 chosenSaveFile = fullPath;
-                                // Trả về trạng thái cho main (gameMode + 10 báo hiệu New Game với file save mới)
+                                showConfirmationScreen("File save \"" + saveFileName + ".txt\" da duoc tao thanh cong!");
                                 return gameMode + 10;
                             }
                         }
@@ -150,7 +156,6 @@ int Menu::run() {
                 }
             }
         }
-        // Nếu nhạc dừng, phát lại
         if (!Mix_PlayingMusic()) {
             playMusic();
         }
@@ -159,6 +164,7 @@ int Menu::run() {
     }
     return -1;
 }
+
 
 bool Menu::selectGameMode() {
     SDL_Event e;
@@ -406,3 +412,28 @@ void Menu::renderMenu() {
 std::string Menu::getChosenSaveFile() {
     return chosenSaveFile;
 }
+
+void Menu::showConfirmationScreen(const std::string& message) {
+    SDL_Event e;
+    bool done = false;
+    while (!done) {
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+
+        SDL_Texture* msgTexture = renderText(message, {255, 255, 255, 255});
+        SDL_Rect msgRect = {50, 250, 700, 50};
+        SDL_RenderCopy(renderer, msgTexture, NULL, &msgRect);
+        SDL_DestroyTexture(msgTexture);
+
+        SDL_RenderPresent(renderer);
+
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_KEYDOWN || e.type == SDL_QUIT) {
+                done = true;
+                break;
+            }
+        }
+        SDL_Delay(16);
+    }
+}
+

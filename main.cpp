@@ -72,9 +72,12 @@ int main(int argc, char* argv[]) {
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) {
                 PauseMenu pauseMenu(renderer);
                 int pauseChoice = pauseMenu.run();
-                if (pauseChoice == 1) player.resetPosition(maze.getStartX(), maze.getStartY());
-                if (pauseChoice == -2) running = false;
-                if (!running) return main(argc, argv);
+                if (pauseChoice == 1) 
+                    player.resetPosition(maze.getStartX(), maze.getStartY());
+                if (pauseChoice == -2)
+                    running = false;
+                // Thay vì gọi main() đệ quy, chỉ break hoặc đặt flag để restart
+                if (!running) break;
             }
         }
         

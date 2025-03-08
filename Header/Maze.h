@@ -10,7 +10,7 @@
 
 class Maze {
 public:
-    Maze();
+    Maze(bool forceNew = false);
     void generate(); // 🔹 Sinh mê cung bằng thuật toán Kruskal
     void render(SDL_Renderer* renderer);
     int getStartX() const; // 🔹 Đánh dấu `const` vì không thay đổi dữ liệu

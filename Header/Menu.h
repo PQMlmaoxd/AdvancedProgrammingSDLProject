@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include "SettingsMenu.h"
+#include "Maze.h"
 
 class Menu {
 public:
@@ -25,6 +26,8 @@ public:
     static std::string getChosenSaveFile();
     // Biến tĩnh để lưu tên file save đã chọn
     static std::string chosenSaveFile;
+    // Hàm hiển thị xác nhận file save
+    void showConfirmationScreen(const std::string& message);
 
 
 private:
@@ -46,6 +49,7 @@ private:
 
     int blinkTimer;
     bool blinkState;
+    Maze maze;
 };
 
 #endif

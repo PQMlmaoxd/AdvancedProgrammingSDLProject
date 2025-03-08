@@ -29,28 +29,36 @@ std::string promptForSaveName(SDL_Renderer* renderer, TTF_Font* font) {
             }
         }
 
-        // Render giao diện nhập tên
+        // Render giao diện nhập tên trên 2 dòng:
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        std::string prompt = "Nhap ten file save: " + saveName;
-        SDL_Color color = {255, 255, 255, 255};
-        SDL_Surface* surface = TTF_RenderUTF8_Solid(font, prompt.c_str(), color);
-        SDL_Texture* textTexture = nullptr;
-        if (surface) {
-            textTexture = SDL_CreateTextureFromSurface(renderer, surface);
-            SDL_FreeSurface(surface);
-        }
+        // Dòng 1: prompt
+        std::string prompt = "Nhap ten file save:";
+        SDL_Color white = {255, 255, 255, 255};
+        SDL_Surface* promptSurface = TTF_RenderUTF8_Solid(font, prompt.c_str(), white);
+        SDL_Texture* promptTexture = SDL_CreateTextureFromSurface(renderer, promptSurface);
+        SDL_FreeSurface(promptSurface);
+        SDL_Rect promptRect = {50, 200, 700, 50};
+        SDL_RenderCopy(renderer, promptTexture, NULL, &promptRect);
+        SDL_DestroyTexture(promptTexture);
 
-        if (textTexture) {
-            SDL_Rect rect = {50, 250, 700, 50};
-            SDL_RenderCopy(renderer, textTexture, NULL, &rect);
-            SDL_DestroyTexture(textTexture);
-        }
+        // Dòng 2: chuỗi người dùng đã nhập
+        SDL_Surface* inputSurface = TTF_RenderUTF8_Solid(font, saveName.c_str(), white);
+        SDL_Texture* inputTexture = SDL_CreateTextureFromSurface(renderer, inputSurface);
+        SDL_FreeSurface(inputSurface);
+        SDL_Rect inputRect = {50, 260, 700, 50};
+        SDL_RenderCopy(renderer, inputTexture, NULL, &inputRect);
+        SDL_DestroyTexture(inputTexture);
+
         SDL_RenderPresent(renderer);
         SDL_Delay(16);
     }
     SDL_StopTextInput();
+
+    // Flush các sự kiện còn lại để tránh nhận nhấn Enter thừa ở phần menu
+    SDL_FlushEvent(SDL_TEXTINPUT);
+    SDL_FlushEvent(SDL_KEYDOWN);
 
     // Kiểm tra tên file hợp lệ:
     if (saveName.empty()) {
@@ -61,7 +69,7 @@ std::string promptForSaveName(SDL_Renderer* renderer, TTF_Font* font) {
         std::cout << "Ten file chua ky tu khong hop le!\n";
         return "";
     }
-    // Kiểm tra xem file đã tồn tại hay chưa
+    // Kiểm tra xem file đã tồn tại hay chưa:
     std::string fullPath = "Save/" + saveName + ".txt";
     std::ifstream file(fullPath);
     if (file.good()) {
