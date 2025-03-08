@@ -7,6 +7,9 @@
     #include <sys/stat.h>  // Linux/macOS: mkdir
     #include <sys/types.h>
 #endif
+#include <string>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 inline void createSaveDirectory() {
     #ifdef _WIN32
@@ -15,5 +18,7 @@ inline void createSaveDirectory() {
         mkdir("Save", 0777);
     #endif
 }
+
+std::string promptForSaveName(SDL_Renderer* renderer, TTF_Font* font);
 
 #endif // UTILS_H

@@ -21,6 +21,11 @@ public:
     int selectSaveSlot();  // Chọn Save Slot
     std::string chooseSaveFile(); // ✅ Khai báo chooseSaveFile
     void renderSubMenu(const std::vector<std::string>& options, int selected); // ✅ Khai báo renderSubMenu
+    // Hàm getter để lấy tên file save đã chọn
+    static std::string getChosenSaveFile();
+    // Biến tĩnh để lưu tên file save đã chọn
+    static std::string chosenSaveFile;
+
 
 private:
     SDL_Renderer* renderer;
