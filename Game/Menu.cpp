@@ -129,22 +129,16 @@ int Menu::run() {
                         int gameMode = selectedOption; 
                         int choice = chooseNewOrLoad();
                         if (choice == 0) {  // New Game
-                            std::string saveFileName = promptForSaveName(renderer, font);
-                            if (!saveFileName.empty()) {
-                                std::string fullPath = "Save/" + saveFileName + ".txt";
-                                // Tạo mê cung mới và lưu với tên file đã nhập
-                                maze.generate();
-                                maze.saveMaze(fullPath);
-                                chosenSaveFile = fullPath;
-                                showConfirmationScreen("File save \"" + saveFileName + ".txt\" da duoc tao thanh cong!");
-                                return gameMode + 10;
-                            }
+                            int ret = handleNewGame();
+                            if (ret != -1)
+                                return gameMode + ret;
                         }
                         if (choice == 1) {  // Load Game
                             std::string saveFile = chooseSaveFile();
                             if (!saveFile.empty()) return gameMode + 20;
                         }
-                    } else if (selectedOption == 2) {
+                    }
+                     else if (selectedOption == 2) {
                         showGuide();
                     } else if (selectedOption == 3) {
                         SettingsMenu settings(renderer);
@@ -164,7 +158,6 @@ int Menu::run() {
     }
     return -1;
 }
-
 
 bool Menu::selectGameMode() {
     SDL_Event e;
@@ -437,3 +430,18 @@ void Menu::showConfirmationScreen(const std::string& message) {
     }
 }
 
+int Menu::handleNewGame() {
+    // Gọi hàm nhập tên file save
+    std::string saveFileName = promptForSaveName(renderer, font);
+    if (!saveFileName.empty()) {
+        std::string fullPath = "Save/" + saveFileName + ".txt";
+        // Tạo một đối tượng Maze mới, ép tạo mê cung mới (forceNew = true)
+        Maze newMaze(true);
+        newMaze.saveMaze(fullPath);
+        chosenSaveFile = fullPath;
+        // Hiển thị màn hình xác nhận
+        showConfirmationScreen("File save \"" + saveFileName + ".txt\" da duoc tao thanh cong!");
+        return 10; // Ví dụ: trả về giá trị New Game (có thể kết hợp với gameMode nếu cần)
+    }
+    return -1; // Nếu nhập không hợp lệ
+}

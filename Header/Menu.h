@@ -28,6 +28,7 @@ public:
     static std::string chosenSaveFile;
     // Hàm hiển thị xác nhận file save
     void showConfirmationScreen(const std::string& message);
+    int handleNewGame();
 
 
 private:
