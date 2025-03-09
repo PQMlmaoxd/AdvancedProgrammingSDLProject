@@ -431,17 +431,92 @@ void Menu::showConfirmationScreen(const std::string& message) {
 }
 
 int Menu::handleNewGame() {
-    // Gọi hàm nhập tên file save
+    // 1) Gọi promptForSaveName
     std::string saveFileName = promptForSaveName(renderer, font);
     if (!saveFileName.empty()) {
+        // 2) Hỏi xác nhận
+        bool confirm = confirmSaveFile(saveFileName);
+        if (!confirm) {
+            // Người chơi chọn Không => về lại menu
+            return -1; 
+        }
+        // Nếu confirm = true => tạo file
         std::string fullPath = "Save/" + saveFileName + ".txt";
-        // Tạo một đối tượng Maze mới, ép tạo mê cung mới (forceNew = true)
         Maze newMaze(true);
         newMaze.saveMaze(fullPath);
         chosenSaveFile = fullPath;
-        // Hiển thị màn hình xác nhận
         showConfirmationScreen("File save \"" + saveFileName + ".txt\" da duoc tao thanh cong!");
-        return 10; // Ví dụ: trả về giá trị New Game (có thể kết hợp với gameMode nếu cần)
+        return 10; 
     }
-    return -1; // Nếu nhập không hợp lệ
+    return -1;
+}
+
+
+bool Menu::confirmSaveFile(const std::string& fileName) {
+    SDL_Event e;
+    bool choosing = true;
+    int selected = 0; // 0 = Không, 1 = Có
+
+    while (choosing) {
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_QUIT) {
+                // Người chơi tắt game
+                return false; 
+            }
+            if (e.type == SDL_KEYDOWN) {
+                switch (e.key.keysym.sym) {
+                    case SDLK_LEFT:
+                    case SDLK_RIGHT:
+                    case SDLK_UP:
+                    case SDLK_DOWN:
+                        selected = 1 - selected; // Chuyển giữa Có (1) và Không (0)
+                        break;
+                    case SDLK_RETURN:
+                        // Nhấn Enter => xác nhận lựa chọn
+                        return (selected == 1); // Nếu =1 => Có => true, ngược lại false
+                    case SDLK_ESCAPE:
+                        return false; // Thoát => coi như Không
+                }
+            }
+        }
+
+        // Vẽ hộp thoại xác nhận
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+
+        // Ví dụ: hiển thị nội dung: "Bạn đã xác nhận FileSave của bạn tên: <fileName>?"
+        std::string message = "FileSave: " + fileName + "\nCo xac nhan khong?";
+        // Hoặc tách ra 2 dòng, tuỳ ý
+
+        SDL_Texture* msgTexture = renderText(message, {255, 255, 255, 255});
+        // Lấy kích thước text
+        int w, h;
+        SDL_QueryTexture(msgTexture, NULL, NULL, &w, &h);
+        SDL_Rect msgRect = { (800 - w)/2, 200, w, h };
+        SDL_RenderCopy(renderer, msgTexture, NULL, &msgRect);
+        SDL_DestroyTexture(msgTexture);
+
+        // Hiển thị 2 lựa chọn: Có / Không
+        std::string yesOption = (selected == 1) ? "> Co <" : "Co";
+        std::string noOption  = (selected == 0) ? "> Khong <" : "Khong";
+
+        // Vẽ "Có"
+        SDL_Texture* yesTexture = renderText(yesOption, {255, 255, 255, 255});
+        SDL_QueryTexture(yesTexture, NULL, NULL, &w, &h);
+        SDL_Rect yesRect = {200, 300, w, h}; 
+        SDL_RenderCopy(renderer, yesTexture, NULL, &yesRect);
+        SDL_DestroyTexture(yesTexture);
+
+        // Vẽ "Không"
+        SDL_Texture* noTexture = renderText(noOption, {255, 255, 255, 255});
+        SDL_QueryTexture(noTexture, NULL, NULL, &w, &h);
+        SDL_Rect noRect = {400, 300, w, h}; 
+        SDL_RenderCopy(renderer, noTexture, NULL, &noRect);
+        SDL_DestroyTexture(noTexture);
+
+        SDL_RenderPresent(renderer);
+        SDL_Delay(16);
+    }
+
+    return false;
 }

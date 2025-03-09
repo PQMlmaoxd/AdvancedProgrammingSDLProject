@@ -29,7 +29,7 @@ public:
     // Hàm hiển thị xác nhận file save
     void showConfirmationScreen(const std::string& message);
     int handleNewGame();
-
+    bool confirmSaveFile(const std::string& fileName);
 
 private:
     SDL_Renderer* renderer;
