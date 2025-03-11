@@ -8,7 +8,8 @@ PauseMenu::PauseMenu(SDL_Renderer* renderer) : renderer(renderer), selectedOptio
     }
 
     textColor = {255, 255, 255, 255};
-    options = {"Tiếp tục", "Chơi lại", "Về menu chính", "Thoát game"};
+    // Thêm tùy chọn "Lưu game" vào menu tạm dừng
+    options = {"Tiếp tục", "Chơi lại", "Lưu game", "Về menu chính", "Thoát game"};
 }
 
 PauseMenu::~PauseMenu() {
@@ -34,17 +35,16 @@ bool PauseMenu::confirmExit() {
                 switch (e.key.keysym.sym) {
                     case SDLK_LEFT:
                     case SDLK_RIGHT:
-                        selected = 1 - selected; // Chuyển giữa "Đúng" và "Không"
+                        selected = 1 - selected;
                         break;
                     case SDLK_RETURN:
-                        return selected == 1; // Nếu chọn "Đúng", thoát game
+                        return selected == 1;
                     case SDLK_ESCAPE:
-                        return false; // Hủy thoát
+                        return false;
                 }
             }
         }
 
-        // Hiển thị hộp thoại xác nhận
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
@@ -54,43 +54,36 @@ bool PauseMenu::confirmExit() {
         SDL_DestroyTexture(message);
 
         SDL_Texture* yesText = renderText(selected == 1 ? "> Đúng <" : "Đúng");
-        SDL_Texture* noText = renderText(selected == 0 ? "> Không <" : "Không");
-
+        SDL_Texture* noText  = renderText(selected == 0 ? "> Không <" : "Không");
         SDL_Rect yesRect = {250, 300, 100, 40};
-        SDL_Rect noRect = {450, 300, 100, 40};
-
+        SDL_Rect noRect  = {450, 300, 100, 40};
         SDL_RenderCopy(renderer, yesText, NULL, &yesRect);
         SDL_RenderCopy(renderer, noText, NULL, &noRect);
-
         SDL_DestroyTexture(yesText);
         SDL_DestroyTexture(noText);
 
         SDL_RenderPresent(renderer);
         SDL_Delay(16);
     }
-
     return false;
 }
 
 void PauseMenu::renderMenu() {
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 200); // Làm nền mờ
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 200); // Nền mờ
     SDL_RenderClear(renderer);
 
     for (size_t i = 0; i < options.size(); i++) {
         SDL_Texture* texture = renderText(options[i]);
         int w, h;
         SDL_QueryTexture(texture, NULL, NULL, &w, &h);
-
         SDL_Rect rect = {300, 200 + (int)i * 50, w, h};
         if (i == selectedOption) {
-            SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // Viền màu vàng
+            SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // Viền vàng cho mục được chọn
             SDL_RenderDrawRect(renderer, &rect);
         }
-
         SDL_RenderCopy(renderer, texture, NULL, &rect);
         SDL_DestroyTexture(texture);
     }
-
     SDL_RenderPresent(renderer);
 }
 
@@ -100,7 +93,7 @@ int PauseMenu::run() {
 
     while (paused) {
         while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) return 3; // Thoát game
+            if (e.type == SDL_QUIT) return 3; // Mã exit game
             if (e.type == SDL_KEYDOWN) {
                 switch (e.key.keysym.sym) {
                     case SDLK_UP:
@@ -110,14 +103,22 @@ int PauseMenu::run() {
                         selectedOption = (selectedOption + 1) % options.size();
                         break;
                     case SDLK_RETURN:
-                        if (selectedOption == 2) return -2; // Quay lại Menu chính
-                        if (selectedOption == 3) { // Nếu chọn "Thoát game"
+                        // Xử lý các lựa chọn:
+                        if (selectedOption == 0) return 0;      // Tiếp tục game
+                        if (selectedOption == 1) return 1;      // Chơi lại
+                        if (selectedOption == 2) {              // Lưu game
+                            // Thực hiện lưu dữ liệu (ví dụ: vị trí, vật phẩm của player)
+                            // Ở đây, bạn có thể gọi một hàm saveGame() từ player hoặc global, ví dụ:
+                            // saveGame();
+                            showConfirmationScreen("Game da duoc luu!");
+                            return 0; // Sau khi lưu, tiếp tục game
+                        }
+                        if (selectedOption == 3) return -2;     // Về menu chính
+                        if (selectedOption == 4) {              // Thoát game
                             if (confirmExit()) {
-                                SDL_Quit(); // Dọn dẹp SDL
-                                exit(0);    // Thoát hoàn toàn
+                                SDL_Quit();
+                                exit(0);
                             }
-                        } else {
-                            return selectedOption;
                         }
                         break;
                     case SDLK_ESCAPE:
@@ -126,8 +127,31 @@ int PauseMenu::run() {
             }
         }
         renderMenu();
+        SDL_Delay(16);
     }
     return 0;
 }
 
+void PauseMenu::showConfirmationScreen(const std::string& message) {
+    SDL_Event e;
+    bool done = false;
+    while (!done) {
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
 
+        SDL_Texture* msgTexture = renderText(message);
+        SDL_Rect msgRect = {50, 250, 700, 50};
+        SDL_RenderCopy(renderer, msgTexture, NULL, &msgRect);
+        SDL_DestroyTexture(msgTexture);
+
+        SDL_RenderPresent(renderer);
+
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_KEYDOWN || e.type == SDL_QUIT) {
+                done = true;
+                break;
+            }
+        }
+        SDL_Delay(16);
+    }
+}

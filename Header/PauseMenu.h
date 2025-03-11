@@ -12,6 +12,7 @@ public:
     ~PauseMenu();
     int run(); // Hiển thị menu pause và trả về lựa chọn
     bool confirmExit();
+    void showConfirmationScreen(const std::string& message);
 private:
     SDL_Renderer* renderer;
     TTF_Font* font;
