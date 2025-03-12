@@ -1,16 +1,17 @@
 #include "PauseMenu.h"
 #include <iostream>
+#include "Menu.h"
 
-PauseMenu::PauseMenu(SDL_Renderer* renderer) : renderer(renderer), selectedOption(0) {
-    font = TTF_OpenFont("src/fonts/arial-unicode-ms.ttf", 28);
-    if (!font) {
-        std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
-    }
-
-    textColor = {255, 255, 255, 255};
-    // Thêm tùy chọn "Lưu game" vào menu tạm dừng
-    options = {"Tiếp tục", "Chơi lại", "Lưu game", "Về menu chính", "Thoát game"};
+PauseMenu::PauseMenu(SDL_Renderer* renderer, Maze& maze, Player& player)
+: renderer(renderer), maze(maze), player(player), selectedOption(0) {
+font = TTF_OpenFont("src/fonts/arial-unicode-ms.ttf", 28);
+if (!font) {
+    std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
 }
+textColor = {255, 255, 255, 255};
+options = {"Tiếp tục", "Chơi lại", "Lưu game", "Về menu chính", "Thoát game"};
+}
+
 
 PauseMenu::~PauseMenu() {
     TTF_CloseFont(font);
@@ -93,7 +94,7 @@ int PauseMenu::run() {
 
     while (paused) {
         while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) return 3; // Mã exit game
+            if (e.type == SDL_QUIT) return 3; 
             if (e.type == SDL_KEYDOWN) {
                 switch (e.key.keysym.sym) {
                     case SDLK_UP:
@@ -103,26 +104,30 @@ int PauseMenu::run() {
                         selectedOption = (selectedOption + 1) % options.size();
                         break;
                     case SDLK_RETURN:
-                        // Xử lý các lựa chọn:
                         if (selectedOption == 0) return 0;      // Tiếp tục game
                         if (selectedOption == 1) return 1;      // Chơi lại
                         if (selectedOption == 2) {              // Lưu game
-                            // Thực hiện lưu dữ liệu (ví dụ: vị trí, vật phẩm của player)
-                            // Ở đây, bạn có thể gọi một hàm saveGame() từ player hoặc global, ví dụ:
-                            // saveGame();
-                            showConfirmationScreen("Game da duoc luu!");
-                            return 0; // Sau khi lưu, tiếp tục game
+                            saveGame();
+                            return 0;
                         }
-                        if (selectedOption == 3) return -2;     // Về menu chính
-                        if (selectedOption == 4) {              // Thoát game
+                        if (selectedOption == 3) { // Về menu chính
+                            saveGame();
+                            SDL_DestroyRenderer(renderer);
+                            SDL_DestroyWindow(SDL_GetWindowFromID(1)); // Hủy cửa sổ hiện tại
+                            return -2;
+                        }
+                        if (selectedOption == 4) { // Thoát game
                             if (confirmExit()) {
+                                saveGame(); 
+                                SDL_DestroyRenderer(renderer);
+                                SDL_DestroyWindow(SDL_GetWindowFromID(1));
                                 SDL_Quit();
                                 exit(0);
                             }
                         }
                         break;
                     case SDLK_ESCAPE:
-                        return 0; // Tiếp tục game
+                        return 0;
                 }
             }
         }
@@ -155,3 +160,21 @@ void PauseMenu::showConfirmationScreen(const std::string& message) {
         SDL_Delay(16);
     }
 }
+
+void PauseMenu::saveGame() {
+    std::string mazeFile = Menu::chosenSaveFile;  // Truy cập biến static của Menu
+    std::string playerFile = mazeFile;
+
+    size_t pos = playerFile.find("_maze.txt");
+    if (pos != std::string::npos) 
+        playerFile.replace(pos, 9, "_player.txt");
+    else 
+        playerFile = "Save/default_player.txt"; 
+
+    maze.saveMaze(mazeFile);
+    player.savePosition(playerFile);
+
+    showConfirmationScreen("Game đã được lưu!");
+}
+
+
