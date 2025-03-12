@@ -134,9 +134,9 @@ int Menu::run() {
                                 return gameMode + ret;
                         }
                         if (choice == 1) {  // Load Game
-                            std::string saveFile = chooseSaveFile();
-                            if (!saveFile.empty()) return gameMode + 20;
-                        }
+                            int ret = handleLoadGame();
+                            if (ret == 20) return 20;  // Vào game ngay lập tức
+                        }                        
                     }
                      else if (selectedOption == 2) {
                         showGuide();
@@ -451,7 +451,6 @@ int Menu::handleNewGame() {
     return -1;
 }
 
-
 bool Menu::confirmSaveFile(const std::string& fileName) {
     SDL_Event e;
     bool choosing = true;
@@ -519,4 +518,14 @@ bool Menu::confirmSaveFile(const std::string& fileName) {
     }
 
     return false;
+}
+
+int Menu::handleLoadGame() {
+    std::string saveFileName = chooseSaveFile();
+    if (!saveFileName.empty()) {
+        chosenSaveFile = "Save/" + saveFileName;
+        showConfirmationScreen("Load thanh cong! Vao game ngay lap tuc!");
+        return 20;  // Trả về giá trị để vào game ngay
+    }
+    return -1;
 }

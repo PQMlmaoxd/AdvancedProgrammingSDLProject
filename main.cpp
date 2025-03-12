@@ -18,7 +18,6 @@
 #include "SettingsMenu.h"
 #include "Maze.h"
 
-// Hàm renderText dùng cho main (nếu cần)
 SDL_Texture* renderText(const std::string &message, TTF_Font *font, SDL_Color color, SDL_Renderer *renderer) {
     SDL_Surface* surface = TTF_RenderText_Solid(font, message.c_str(), color);
     if (!surface) return nullptr;
@@ -38,57 +37,52 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    // Tạo Menu và chạy menu
     Menu menu(renderer);
     int gameMode = menu.run();
-    if (gameMode == -1) return 0;
-    
-    createSaveDirectory(); // Tạo thư mục Save nếu chưa tồn tại
-    
+    if (gameMode == -1) return 0;  // Thoát game
+
+    createSaveDirectory();
+
     std::string mazeFile, playerFile;
-    bool customSave = false;
-    
-    // Nếu gameMode trong khoảng 10-19, nghĩa là New Game với file save tùy chỉnh
-    if (gameMode >= 10 && gameMode < 20) {
-        customSave = true;
-        mazeFile = menu.getChosenSaveFile();
-        // Tạo file player dựa trên file maze (thay _maze.txt thành _player.txt)
-        playerFile = mazeFile;
+    bool isNewGame = false;
+
+    std::string chosenFile = menu.getChosenSaveFile();
+    if (!chosenFile.empty()) {
+        mazeFile = chosenFile;
+        playerFile = chosenFile;
         size_t pos = playerFile.find("_maze.txt");
         if (pos != std::string::npos)
             playerFile.replace(pos, 9, "_player.txt");
         else
             playerFile = "Save/default_player.txt";
+
+        isNewGame = (gameMode == 10);  // Nếu là New Game, sinh mê cung mới
     } else {
-        // Nếu không phải New Game tùy chỉnh, hỏi lại New Game/Load Game và slot
-        customSave = false;
-        bool newGame = menu.selectGameMode();
+        isNewGame = menu.selectGameMode();
         int saveSlot = menu.selectSaveSlot();
         mazeFile = "Save/Save" + std::to_string(saveSlot) + "_maze.txt";
         playerFile = "Save/Save" + std::to_string(saveSlot) + "_player.txt";
     }
-    
-    // Tạo hoặc load Maze:
+
     Maze maze;
     std::ifstream mazeCheck(mazeFile);
-    if (!customSave && !mazeCheck.fail()) {
-        maze.loadMaze(mazeFile);
-    } else {
+    if (isNewGame || mazeCheck.fail()) {
         maze.generate();
         maze.saveMaze(mazeFile);
+    } else {
+        maze.loadMaze(mazeFile);
     }
     mazeCheck.close();
-    
-    // Tạo Player tại vị trí bắt đầu của Maze:
+
     Player player(maze.getStartX(), maze.getStartY(), renderer);
     std::ifstream playerCheck(playerFile);
-    if (!customSave && !playerCheck.fail()) {
+    if (!isNewGame && !playerCheck.fail()) {
         player.loadPosition(playerFile);
     }
     playerCheck.close();
-    
+
     player.loadKeybinds();
-    
+
     bool running = true;
     SDL_Event e;
     while (running) {

@@ -29,6 +29,7 @@ public:
     // Hàm hiển thị xác nhận file save
     void showConfirmationScreen(const std::string& message);
     int handleNewGame();
+    int handleLoadGame();
     bool confirmSaveFile(const std::string& fileName);
 
 private:
