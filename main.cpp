@@ -26,44 +26,7 @@ SDL_Texture* renderText(const std::string &message, TTF_Font *font, SDL_Color co
     return texture;
 }
 
-int main(int argc, char* argv[]) {
-    SDL_Init(SDL_INIT_VIDEO);
-    TTF_Init();
-    SDL_Window* window = SDL_CreateWindow("Shadow Maze", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    TTF_Font* font = TTF_OpenFont("src/fonts/arial.ttf", 24);
-    if (!font) {
-        std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
-        return 1;
-    }
-    
-    Menu menu(renderer);
-    int gameMode = menu.run();
-    if (gameMode == -1) return 0;  // Thoát game
-
-    createSaveDirectory();
-
-    std::string mazeFile, playerFile;
-    bool isNewGame = false;
-
-    std::string chosenFile = menu.getChosenSaveFile();
-    if (!chosenFile.empty()) {
-        mazeFile = chosenFile;
-        playerFile = chosenFile;
-        size_t pos = playerFile.find("_maze.txt");
-        if (pos != std::string::npos)
-            playerFile.replace(pos, 9, "_player.txt");
-        else
-            playerFile = "Save/default_player.txt";
-
-        isNewGame = (gameMode == 10);  // Nếu là New Game, sinh mê cung mới
-    } else {
-        isNewGame = menu.selectGameMode();
-        int saveSlot = menu.selectSaveSlot();
-        mazeFile = "Save/Save" + std::to_string(saveSlot) + "_maze.txt";
-        playerFile = "Save/Save" + std::to_string(saveSlot) + "_player.txt";
-    }
-
+int startGame(SDL_Renderer* renderer, const std::string& mazeFile, const std::string& playerFile, bool isNewGame) {
     Maze maze;
     std::ifstream mazeCheck(mazeFile);
     if (isNewGame || mazeCheck.fail()) {
@@ -87,34 +50,77 @@ int main(int argc, char* argv[]) {
     SDL_Event e;
     while (running) {
         while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) running = false;
+            if (e.type == SDL_QUIT) return -1;
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) {
                 PauseMenu pauseMenu(renderer, maze, player);
                 int pauseChoice = pauseMenu.run();
-                if (pauseChoice == 1) 
+                if (pauseChoice == 1) {
                     player.resetPosition(maze.getStartX(), maze.getStartY());
-                if (pauseChoice == -2) {
-                    SDL_DestroyRenderer(renderer);
-                    SDL_DestroyWindow(window);
-                    return main(argc, argv);
+                }
+                if (pauseChoice == -2) { 
+                    return 1; // Quay về menu chính
                 }
             }
         }
-        
+
         const Uint8* keys = SDL_GetKeyboardState(NULL);
         player.handleInput(keys, maze);
         player.update(maze);
-        
+
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
         maze.render(renderer);
         player.render(renderer);
         SDL_RenderPresent(renderer);
     }
-    
+
     maze.saveMaze(mazeFile);
     player.savePosition(playerFile);
-    
+    return 0;
+}
+
+int main(int argc, char* argv[]) {
+    SDL_Init(SDL_INIT_VIDEO);
+    TTF_Init();
+    SDL_Window* window = SDL_CreateWindow("Shadow Maze", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    TTF_Font* font = TTF_OpenFont("src/fonts/arial.ttf", 24);
+    if (!font) {
+        std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
+        return 1;
+    }
+
+    while (true) {
+        Menu menu(renderer);
+        int gameMode = menu.run();
+        if (gameMode == -1) break; // Thoát game
+
+        createSaveDirectory();
+
+        std::string mazeFile, playerFile;
+        bool isNewGame = false;
+
+        std::string chosenFile = menu.getChosenSaveFile();
+        if (!chosenFile.empty()) {
+            mazeFile = chosenFile;
+            playerFile = chosenFile;
+            size_t pos = playerFile.find("_maze.txt");
+            if (pos != std::string::npos)
+                playerFile.replace(pos, 9, "_player.txt");
+            else
+                playerFile = "Save/default_player.txt";
+            isNewGame = (gameMode == 10);
+        } else {
+            isNewGame = menu.selectGameMode();
+            int saveSlot = menu.selectSaveSlot();
+            mazeFile = "Save/Save" + std::to_string(saveSlot) + "_maze.txt";
+            playerFile = "Save/Save" + std::to_string(saveSlot) + "_player.txt";
+        }
+
+        int gameResult = startGame(renderer, mazeFile, playerFile, isNewGame);
+        if (gameResult == -1) break; // Nếu thoát game
+    }
+
     TTF_CloseFont(font);
     TTF_Quit();
     SDL_DestroyRenderer(renderer);

@@ -67,6 +67,10 @@ void Maze::generate() {
     startY = 1;
     maze[startY][startX] = 0;
 
+    goalX = cols - 2;
+    goalY = rows - 2;
+    maze[goalY][goalX] = 0;
+
 }
 
 void Maze::render(SDL_Renderer* renderer) {
@@ -79,6 +83,9 @@ void Maze::render(SDL_Renderer* renderer) {
             }
         }
     }
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // Màu xanh
+    SDL_Rect goalRect = { goalX * tileSize, goalY * tileSize, tileSize, tileSize };
+    SDL_RenderFillRect(renderer, &goalRect);
 }
 
 void Maze::saveMaze(const std::string& filename) {
@@ -95,6 +102,7 @@ void Maze::saveMaze(const std::string& filename) {
         }
         file << "\n";
     }
+    file << goalX << " " << goalY << "\n";  
     file.close();
 }
 
@@ -107,7 +115,12 @@ bool Maze::loadMaze(const std::string& filename) {
             file >> maze[i][j];
         }
     }
-
+    
+    if (!(file >> goalX >> goalY)) {
+        goalX = cols - 2;
+        goalY = rows - 2;
+    }
+    
     file.close();
     return true;
 }
@@ -150,3 +163,6 @@ void Maze::unionSets(int a, int b) {
             rank[a]++;
     }
 }
+
+int Maze::getGoalX() const { return goalX * tileSize; }
+int Maze::getGoalY() const { return goalY * tileSize; }

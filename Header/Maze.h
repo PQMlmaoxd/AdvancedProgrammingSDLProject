@@ -20,6 +20,8 @@ public:
     // 🔹 Load/Save mê cung từ file
     void saveMaze(const std::string& filename);
     bool loadMaze(const std::string& filename);
+    int getGoalX() const;
+    int getGoalY() const;
 
 private:
     struct Edge {
@@ -38,6 +40,7 @@ private:
     void unionSets(int a, int b);
     void initializeMaze(); // 🔹 Khởi tạo mê cung toàn tường
     std::string getLatestSave();
+    int goalX, goalY;
 };
 
 #endif

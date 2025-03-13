@@ -4,9 +4,9 @@
 #include <SDL2/SDL_image.h>
 #include "Maze.h"  
 
-Player::Player(SDL_Renderer* renderer) : renderer(renderer) {
-    if (!loadPosition("save.txt")) { // 🔹 Nếu không có file save, đặt vị trí mặc định
-        rect = {100, 100, 32, 32};
+Player::Player(SDL_Renderer* renderer, Maze& maze) : renderer(renderer)  {
+    if (!loadPosition("save.txt")) { 
+        rect = {maze.getStartX(), maze.getStartY(), 32, 32}; // Bắt đầu từ vị trí xuất phát
     }
     speed = 4;
     loadKeybinds();
@@ -22,36 +22,38 @@ Player::Player(int x, int y, SDL_Renderer* renderer) : renderer(renderer) {
 
 void Player::handleInput(const Uint8* keys, const Maze& maze) {
     Uint32 currentTime = SDL_GetTicks();
-    // Kiểm tra delay: nếu chưa đủ thời gian chờ thì không cho di chuyển
     if (currentTime - lastMoveTime < moveDelay) return;
 
-    // Lưu vị trí hiện tại
     SDL_Rect newPos = rect;
 
-    // Tính toán vị trí mới dựa trên keybindings
     if (keybinds.count("left") && keys[SDL_GetScancodeFromKey(keybinds["left"])]) {
-        newPos.x -= tileSize; // Di chuyển một ô sang trái
+        newPos.x -= tileSize;
     }
     if (keybinds.count("right") && keys[SDL_GetScancodeFromKey(keybinds["right"])]) {
-        newPos.x += tileSize; // Di chuyển một ô sang phải
+        newPos.x += tileSize;
     }
     if (keybinds.count("up") && keys[SDL_GetScancodeFromKey(keybinds["up"])]) {
-        newPos.y -= tileSize; // Di chuyển một ô lên trên
+        newPos.y -= tileSize;
     }
     if (keybinds.count("down") && keys[SDL_GetScancodeFromKey(keybinds["down"])]) {
-        newPos.y += tileSize; // Di chuyển một ô xuống dưới
+        newPos.y += tileSize;
     }
 
-    // Kiểm tra va chạm với mê cung trước khi cập nhật vị trí
     if (!maze.checkCollision(newPos)) {
         rect = newPos;
-        savePosition("save.txt"); // Lưu vị trí sau khi di chuyển thành công
-        lastMoveTime = currentTime;  // Cập nhật thời gian di chuyển cuối cùng
+        savePosition("save.txt");
+        lastMoveTime = currentTime;
+    }
+
+    // 🔹 Kiểm tra nếu đạt đích
+    if (rect.x == maze.getGoalX() && rect.y == maze.getGoalY()) {
+        std::cout << "🎉 Bạn đã hoàn thành màn chơi!\n";
+        SDL_Delay(2000); // Dừng 2 giây trước khi thoát
+        exit(0);
     }
 }
 
 void Player::update(const Maze& maze) {
-    // 🔹 Không cần xử lý trọng lực nữa
 }
 
 void Player::render(SDL_Renderer* renderer) {
@@ -67,7 +69,7 @@ void Player::render(SDL_Renderer* renderer) {
 void Player::resetPosition(int x, int y) {
     rect.x = x;
     rect.y = y;
-    savePosition("save.txt"); // 🔹 Lưu vị trí ngay khi reset
+    savePosition("save.txt");
 }
 
 void Player::loadKeybinds() {
@@ -81,7 +83,6 @@ void Player::loadKeybinds() {
         file.close();
     }
 
-    // 🔹 Nếu thiếu keybind nào, đặt mặc định là phím mũi tên
     if (keybinds.find("left") == keybinds.end()) keybinds["left"] = SDLK_LEFT;
     if (keybinds.find("right") == keybinds.end()) keybinds["right"] = SDLK_RIGHT;
     if (keybinds.find("up") == keybinds.end()) keybinds["up"] = SDLK_UP;

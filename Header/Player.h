@@ -8,7 +8,7 @@
 
 class Player {
 public:
-    Player(SDL_Renderer* renderer);
+    Player(SDL_Renderer* renderer, Maze& maze); 
     Player(int x, int y, SDL_Renderer* renderer);
 
     void handleInput(const Uint8* keys, const Maze& maze); // 🔹 Kiểm tra va chạm với mê cung
