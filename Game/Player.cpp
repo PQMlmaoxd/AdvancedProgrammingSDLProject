@@ -46,7 +46,8 @@ void Player::handleInput(const Uint8* keys, const Maze& maze) {
     }
 
     // 🔹 Kiểm tra nếu đạt đích
-    if (rect.x == maze.getGoalX() && rect.y == maze.getGoalY()) {
+    if (rect.x / tileSize == maze.getGoalX() / tileSize &&
+    rect.y / tileSize == maze.getGoalY() / tileSize) {
         std::cout << "🎉 Bạn đã hoàn thành màn chơi!\n";
         SDL_Delay(2000); // Dừng 2 giây trước khi thoát
         exit(0);
@@ -54,6 +55,13 @@ void Player::handleInput(const Uint8* keys, const Maze& maze) {
 }
 
 void Player::update(const Maze& maze) {
+    if (rect.x / tileSize == maze.getGoalX() / tileSize &&
+        rect.y / tileSize == maze.getGoalY() / tileSize) {
+        std::cout << "🎉 Bạn đã đến đích!" << std::endl;
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Chúc mừng!", "Bạn đã hoàn thành màn chơi!", NULL);
+        SDL_Delay(2000); // Dừng 2 giây trước khi reset hoặc thoát
+        exit(0);
+    }
 }
 
 void Player::render(SDL_Renderer* renderer) {

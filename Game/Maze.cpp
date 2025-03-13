@@ -144,8 +144,18 @@ bool Maze::checkCollision(const SDL_Rect& playerRect) const {
     int y2 = (playerRect.y + playerRect.h - 1) / tileSize;
 
     if (x1 < 0 || x2 >= cols || y1 < 0 || y2 >= rows) return true;
+
+    // 🛠 Thêm điều kiện: Nếu player đi vào goal, không tính là va chạm
+    if ((x1 == goalX && y1 == goalY) || 
+        (x1 == goalX && y2 == goalY) || 
+        (x2 == goalX && y1 == goalY) || 
+        (x2 == goalX && y2 == goalY)) {
+        return false; // 🚀 Cho phép đi vào goal
+    }
+
     return maze[y1][x1] == 1 || maze[y1][x2] == 1 || maze[y2][x1] == 1 || maze[y2][x2] == 1;
 }
+
 
 int Maze::findSet(int v) {
     if (parent[v] == v) return v;
