@@ -65,7 +65,7 @@ int startGame(SDL_Renderer* renderer, const std::string& mazeFile, const std::st
 
         const Uint8* keys = SDL_GetKeyboardState(NULL);
         player.handleInput(keys, maze);
-        player.update(maze);
+        player.update(maze, renderer);
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);

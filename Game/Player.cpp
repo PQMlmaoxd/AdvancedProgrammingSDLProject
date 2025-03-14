@@ -2,11 +2,12 @@
 #include <iostream>
 #include <fstream>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h> // 🔹 Đảm bảo sử dụng SDL_ttf để hiển thị chữ
 #include "Maze.h"  
 
-Player::Player(SDL_Renderer* renderer, Maze& maze) : renderer(renderer)  {
+Player::Player(SDL_Renderer* renderer, Maze& maze) : renderer(renderer) {
     if (!loadPosition("save.txt")) { 
-        rect = {maze.getStartX(), maze.getStartY(), 32, 32}; // Bắt đầu từ vị trí xuất phát
+        rect = {maze.getStartX(), maze.getStartY(), 32, 32};
     }
     speed = 4;
     loadKeybinds();
@@ -44,23 +45,68 @@ void Player::handleInput(const Uint8* keys, const Maze& maze) {
         savePosition("save.txt");
         lastMoveTime = currentTime;
     }
+}
 
-    // 🔹 Kiểm tra nếu đạt đích
-    if (rect.x / tileSize == maze.getGoalX() / tileSize &&
-    rect.y / tileSize == maze.getGoalY() / tileSize) {
-        std::cout << "🎉 Bạn đã hoàn thành màn chơi!\n";
-        SDL_Delay(2000); // Dừng 2 giây trước khi thoát
-        exit(0);
+void Player::update(const Maze& maze, SDL_Renderer* renderer) {
+    SDL_Rect goalRect = {maze.getGoalX(), maze.getGoalY(), tileSize, tileSize}; 
+    if (SDL_HasIntersection(&rect, &goalRect)) {
+        showWinScreen(renderer);
     }
 }
 
-void Player::update(const Maze& maze) {
-    if (rect.x / tileSize == maze.getGoalX() / tileSize &&
-        rect.y / tileSize == maze.getGoalY() / tileSize) {
-        std::cout << "🎉 Bạn đã đến đích!" << std::endl;
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Chúc mừng!", "Bạn đã hoàn thành màn chơi!", NULL);
-        SDL_Delay(2000); // Dừng 2 giây trước khi reset hoặc thoát
-        exit(0);
+void Player::showWinScreen(SDL_Renderer* renderer) {
+    bool choosing = true;
+    int selectedOption = 0;
+    SDL_Event e;
+
+    // Load font
+    TTF_Font* font = TTF_OpenFont("src/fonts/arial.ttf", 48);
+    TTF_Font* optionFont = TTF_OpenFont("src/fonts/arial.ttf", 28);
+    SDL_Color textColor = {255, 255, 255, 255};  // Màu trắng
+
+    while (choosing) {
+        // Xóa màn hình và tô nền đen
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+
+        // Hiển thị "You Win!" phía trên
+        SDL_Texture* winText = renderText("You Win!", font, textColor, renderer);
+        SDL_Rect winRect = {300, 100, 200, 60}; // Căn giữa phía trên
+        SDL_RenderCopy(renderer, winText, NULL, &winRect);
+        SDL_DestroyTexture(winText);
+
+        // Các lựa chọn phía dưới
+        std::vector<std::string> options = {"Chơi lại", "Trở về Menu", "Thoát"};
+        for (size_t i = 0; i < options.size(); i++) {
+            SDL_Color optionColor = (i == selectedOption) ? SDL_Color{255, 255, 0, 255} : textColor;
+            SDL_Texture* optionText = renderText(options[i], optionFont, optionColor, renderer);
+            SDL_Rect optionRect = {300, 250 + (int)i * 50, 200, 40}; // Hiển thị từ giữa màn hình xuống
+            SDL_RenderCopy(renderer, optionText, NULL, &optionRect);
+            SDL_DestroyTexture(optionText);
+        }
+
+        SDL_RenderPresent(renderer);
+
+        // Xử lý sự kiện chọn lựa
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_QUIT) exit(0);
+            if (e.type == SDL_KEYDOWN) {
+                switch (e.key.keysym.sym) {
+                    case SDLK_UP:
+                        selectedOption = (selectedOption - 1 + options.size()) % options.size();
+                        break;
+                    case SDLK_DOWN:
+                        selectedOption = (selectedOption + 1) % options.size();
+                        break;
+                    case SDLK_RETURN:
+                        if (selectedOption == 0) return; // Chơi lại
+                        if (selectedOption == 1) exit(1); // Trở về Menu
+                        if (selectedOption == 2) exit(0); // Thoát
+                        break;
+                }
+            }
+        }
+        SDL_Delay(16);
     }
 }
 
@@ -136,3 +182,18 @@ void Player::loadTexture() {
         std::cerr << "⚠️ Lỗi: Không thể tạo texture từ ảnh! " << SDL_GetError() << std::endl;
     }
 }
+
+SDL_Texture* Player::renderText(const std::string &message, TTF_Font *font, SDL_Color color, SDL_Renderer *renderer) {
+    SDL_Surface* surface = TTF_RenderText_Solid(font, message.c_str(), color);
+    if (!surface) {
+        std::cerr << "Lỗi khi tạo Surface: " << TTF_GetError() << std::endl;
+        return nullptr;
+    }
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    if (!texture) {
+        std::cerr << "Lỗi khi tạo Texture: " << SDL_GetError() << std::endl;
+    }
+    return texture;
+}
+
