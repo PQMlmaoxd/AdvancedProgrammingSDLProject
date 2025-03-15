@@ -23,6 +23,9 @@ public:
 
     ~Player();
 
+    bool shouldReturnToMenu() const { return returnToMenu; }
+    void setReturnToMenu(bool value) { returnToMenu = value; }  // ✅ Setter để cập nhật trạng thái
+
 private:
     SDL_Rect rect;
     int speed;
@@ -37,10 +40,11 @@ private:
     int tileSize = 40;              
 
     // ⚡ Hiển thị thông báo chúc mừng ngay trên màn hình
-    void showWinScreen(SDL_Renderer* renderer);
+    int showWinScreen(SDL_Renderer* renderer);
 
     SDL_Texture* renderText(const std::string &message, TTF_Font *font, SDL_Color color, SDL_Renderer *renderer);
 
+    bool returnToMenu = false;
 };
 
 #endif

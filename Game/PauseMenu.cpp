@@ -112,8 +112,7 @@ int PauseMenu::run() {
                         }
                         if (selectedOption == 3) { // Về menu chính
                             saveGame();
-                            SDL_DestroyRenderer(renderer);
-                            SDL_DestroyWindow(SDL_GetWindowFromID(1)); // Hủy cửa sổ hiện tại
+                            player.setReturnToMenu(true);
                             return -2;
                         }
                         if (selectedOption == 4) { // Thoát game

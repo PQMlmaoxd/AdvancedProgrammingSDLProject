@@ -38,6 +38,8 @@ int startGame(SDL_Renderer* renderer, const std::string& mazeFile, const std::st
     mazeCheck.close();
 
     Player player(maze.getStartX(), maze.getStartY(), renderer);
+    player.setReturnToMenu(false); // ✅ Đặt lại trạng thái trước khi vào game
+
     std::ifstream playerCheck(playerFile);
     if (!isNewGame && !playerCheck.fail()) {
         player.loadPosition(playerFile);
@@ -58,7 +60,7 @@ int startGame(SDL_Renderer* renderer, const std::string& mazeFile, const std::st
                     player.resetPosition(maze.getStartX(), maze.getStartY());
                 }
                 if (pauseChoice == -2) { 
-                    return 1; // Quay về menu chính
+                    return 1; // ✅ Quay về menu chính
                 }
             }
         }
@@ -66,6 +68,11 @@ int startGame(SDL_Renderer* renderer, const std::string& mazeFile, const std::st
         const Uint8* keys = SDL_GetKeyboardState(NULL);
         player.handleInput(keys, maze);
         player.update(maze, renderer);
+
+        // ✅ Nếu Player chọn quay lại menu, kết thúc game loop
+        if (player.shouldReturnToMenu()) {
+            return 1;
+        }
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);

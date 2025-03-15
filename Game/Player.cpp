@@ -50,11 +50,14 @@ void Player::handleInput(const Uint8* keys, const Maze& maze) {
 void Player::update(const Maze& maze, SDL_Renderer* renderer) {
     SDL_Rect goalRect = {maze.getGoalX(), maze.getGoalY(), tileSize, tileSize}; 
     if (SDL_HasIntersection(&rect, &goalRect)) {
-        showWinScreen(renderer);
+        int result = showWinScreen(renderer);
+        if (result == -2) {  // Nếu chọn "Menu", trả về giá trị để xử lý trong `main.cpp`
+            returnToMenu = true;
+        }
     }
 }
 
-void Player::showWinScreen(SDL_Renderer* renderer) {
+int Player::showWinScreen(SDL_Renderer* renderer) {
     bool choosing = true;
     int selectedOption = 0;
     SDL_Event e;
@@ -76,7 +79,7 @@ void Player::showWinScreen(SDL_Renderer* renderer) {
         SDL_DestroyTexture(winText);
 
         // Các lựa chọn phía dưới
-        std::vector<std::string> options = {"Chơi lại", "Trở về Menu", "Thoát"};
+        std::vector<std::string> options = {"Thoát", "Menu"};
         for (size_t i = 0; i < options.size(); i++) {
             SDL_Color optionColor = (i == selectedOption) ? SDL_Color{255, 255, 0, 255} : textColor;
             SDL_Texture* optionText = renderText(options[i], optionFont, optionColor, renderer);
@@ -89,7 +92,7 @@ void Player::showWinScreen(SDL_Renderer* renderer) {
 
         // Xử lý sự kiện chọn lựa
         while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) exit(0);
+            if (e.type == SDL_QUIT) return -1;
             if (e.type == SDL_KEYDOWN) {
                 switch (e.key.keysym.sym) {
                     case SDLK_UP:
@@ -99,15 +102,14 @@ void Player::showWinScreen(SDL_Renderer* renderer) {
                         selectedOption = (selectedOption + 1) % options.size();
                         break;
                     case SDLK_RETURN:
-                        if (selectedOption == 0) return; // Chơi lại
-                        if (selectedOption == 1) exit(1); // Trở về Menu
-                        if (selectedOption == 2) exit(0); // Thoát
-                        break;
+                        if (selectedOption == 0) return -1; // Thoát game
+                        if (selectedOption == 1) return -2; // Quay lại menu chính
                 }
             }
         }
         SDL_Delay(16);
     }
+    return -1;
 }
 
 void Player::render(SDL_Renderer* renderer) {
