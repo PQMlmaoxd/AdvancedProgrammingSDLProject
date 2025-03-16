@@ -8,20 +8,26 @@
 #include <cstdlib>
 #include <ctime>
 
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 600 
+
 class Maze {
 public:
     Maze(bool forceNew = false);
     void generate(); // 🔹 Sinh mê cung bằng thuật toán Kruskal
-    void render(SDL_Renderer* renderer);
+    void render(SDL_Renderer* renderer, int playerX, int playerY);
     int getStartX() const; // 🔹 Đánh dấu `const` vì không thay đổi dữ liệu
     int getStartY() const;
+    int getGoalX() const;
+    int getGoalY() const;
     bool checkCollision(const SDL_Rect& playerRect) const;
     
     // 🔹 Load/Save mê cung từ file
     void saveMaze(const std::string& filename);
     bool loadMaze(const std::string& filename);
-    int getGoalX() const;
-    int getGoalY() const;
+
+    // 🔹 Hiệu ứng bóng tối
+    void createShadowMask(SDL_Renderer* renderer, int playerX, int playerY);
 
 private:
     struct Edge {
@@ -29,7 +35,8 @@ private:
     };
 
     int maze[15][20]; // 15x20 ô, 0 là đường, 1 là tường
-    int startX, startY; // 🔹 Vị trí bắt đầu của người chơi
+    int startX, startY;
+    int goalX, goalY;
     
     // 🔹 Các biến hỗ trợ thuật toán Kruskal
     std::vector<Edge> edges; 
@@ -38,9 +45,12 @@ private:
     // 🔹 Hỗ trợ thuật toán Kruskal
     int findSet(int v);
     void unionSets(int a, int b);
-    void initializeMaze(); // 🔹 Khởi tạo mê cung toàn tường
     std::string getLatestSave();
-    int goalX, goalY;
+
+    // 🔹 Hiệu ứng bóng tối
+    SDL_Texture* shadowMask = nullptr; // ✅ Thêm biến quản lý hiệu ứng bóng tối
+    void drawLight(SDL_Renderer* renderer, int x, int y, int radius); // ✅ Hàm vẽ vùng sáng
+
 };
 
 #endif

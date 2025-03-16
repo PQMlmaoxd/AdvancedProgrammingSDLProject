@@ -8,6 +8,7 @@
 #include <direct.h>
 #include <sys/types.h>
 
+
 struct Edge {
     int x1, y1, x2, y2;
 };
@@ -73,7 +74,8 @@ void Maze::generate() {
 
 }
 
-void Maze::render(SDL_Renderer* renderer) {
+void Maze::render(SDL_Renderer* renderer, int playerX, int playerY) {
+    // Vẽ mê cung
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
@@ -83,9 +85,42 @@ void Maze::render(SDL_Renderer* renderer) {
             }
         }
     }
-    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // Màu xanh
+
+    // Vẽ đích đến (Goal)
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
     SDL_Rect goalRect = { goalX * tileSize, goalY * tileSize, tileSize, tileSize };
     SDL_RenderFillRect(renderer, &goalRect);
+
+    // Tạo texture hiệu ứng bóng tối
+    SDL_Texture* shadowMask = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT);
+    SDL_SetTextureBlendMode(shadowMask, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderTarget(renderer, shadowMask);
+
+    // Tô màu đen toàn màn hình
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
+
+    // Vẽ vòng sáng xung quanh người chơi
+    drawLight(renderer, playerX, playerY, 100);
+
+    // Áp dụng hiệu ứng bóng tối lên màn hình
+    SDL_SetRenderTarget(renderer, NULL);
+    SDL_RenderCopy(renderer, shadowMask, NULL, NULL);
+    SDL_DestroyTexture(shadowMask);
+}
+
+void Maze::drawLight(SDL_Renderer* renderer, int x, int y, int radius) {
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 180); // Màu đen nhưng có độ trong suốt
+
+    for (int w = -radius; w <= radius; w++) {
+        for (int h = -radius; h <= radius; h++) {
+            int dx = w;
+            int dy = h;
+            if ((dx * dx + dy * dy) <= (radius * radius)) {
+                SDL_RenderDrawPoint(renderer, x + dx, y + dy);
+            }
+        }
+    }
 }
 
 void Maze::saveMaze(const std::string& filename) {
@@ -177,3 +212,20 @@ void Maze::unionSets(int a, int b) {
 
 int Maze::getGoalX() const { return goalX * tileSize; }
 int Maze::getGoalY() const { return goalY * tileSize; }
+
+void Maze::createShadowMask(SDL_Renderer* renderer, int playerX, int playerY) {
+    if (shadowMask) SDL_DestroyTexture(shadowMask);
+
+    // Tạo texture đen phủ toàn bộ màn hình
+    shadowMask = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT);
+    SDL_SetRenderTarget(renderer, shadowMask);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
+
+    // Vẽ vùng sáng xung quanh người chơi
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    drawLight(renderer, playerX, playerY, 100);
+
+    SDL_SetRenderTarget(renderer, NULL);
+}
+

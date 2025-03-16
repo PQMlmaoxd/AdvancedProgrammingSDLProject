@@ -76,7 +76,7 @@ int startGame(SDL_Renderer* renderer, const std::string& mazeFile, const std::st
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
-        maze.render(renderer);
+        maze.render(renderer, player.getX(), player.getY());
         player.render(renderer);
         SDL_RenderPresent(renderer);
     }

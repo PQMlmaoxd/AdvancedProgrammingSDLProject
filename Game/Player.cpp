@@ -3,7 +3,7 @@
 #include <fstream>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h> // 🔹 Đảm bảo sử dụng SDL_ttf để hiển thị chữ
-#include "Maze.h"  
+#include "Maze.h" 
 
 Player::Player(SDL_Renderer* renderer, Maze& maze) : renderer(renderer) {
     if (!loadPosition("save.txt")) { 
@@ -48,11 +48,15 @@ void Player::handleInput(const Uint8* keys, const Maze& maze) {
 }
 
 void Player::update(const Maze& maze, SDL_Renderer* renderer) {
-    SDL_Rect goalRect = {maze.getGoalX(), maze.getGoalY(), tileSize, tileSize}; 
+    SDL_Rect goalRect = {maze.getGoalX() * tileSize, maze.getGoalY() * tileSize, tileSize, tileSize}; 
+
     if (SDL_HasIntersection(&rect, &goalRect)) {
         int result = showWinScreen(renderer);
-        if (result == -2) {  // Nếu chọn "Menu", trả về giá trị để xử lý trong `main.cpp`
+        if (result == -2) {  // Nếu chọn "Menu", đánh dấu để quay lại menu chính
             returnToMenu = true;
+        } else if (result == -1) { // Nếu chọn "Thoát game"
+            SDL_Quit();
+            exit(0);
         }
     }
 }
@@ -79,7 +83,7 @@ int Player::showWinScreen(SDL_Renderer* renderer) {
         SDL_DestroyTexture(winText);
 
         // Các lựa chọn phía dưới
-        std::vector<std::string> options = {"Thoát", "Menu"};
+        std::vector<std::string> options = {"Escape", "Menu"};
         for (size_t i = 0; i < options.size(); i++) {
             SDL_Color optionColor = (i == selectedOption) ? SDL_Color{255, 255, 0, 255} : textColor;
             SDL_Texture* optionText = renderText(options[i], optionFont, optionColor, renderer);
@@ -198,4 +202,8 @@ SDL_Texture* Player::renderText(const std::string &message, TTF_Font *font, SDL_
     }
     return texture;
 }
+
+int Player::getX() const { return rect.x + rect.w / 2; }
+int Player::getY() const { return rect.y + rect.h / 2; }
+
 

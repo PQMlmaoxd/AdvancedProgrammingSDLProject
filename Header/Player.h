@@ -25,6 +25,8 @@ public:
 
     bool shouldReturnToMenu() const { return returnToMenu; }
     void setReturnToMenu(bool value) { returnToMenu = value; }  // ✅ Setter để cập nhật trạng thái
+    int getX() const;
+    int getY() const;
 
 private:
     SDL_Rect rect;
