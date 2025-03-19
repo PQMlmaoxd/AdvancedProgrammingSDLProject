@@ -125,6 +125,7 @@ int main(int argc, char* argv[]) {
         }
 
         int gameResult = startGame(renderer, mazeFile, playerFile, isNewGame);
+        Menu::chosenSaveFile = "";
         if (gameResult == -1) break; // Nếu thoát game
     }
 

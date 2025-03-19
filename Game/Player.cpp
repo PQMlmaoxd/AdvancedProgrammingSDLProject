@@ -29,15 +29,21 @@ void Player::handleInput(const Uint8* keys, const Maze& maze) {
 
     if (keybinds.count("left") && keys[SDL_GetScancodeFromKey(keybinds["left"])]) {
         newPos.x -= tileSize;
+        currentTexture = textureSide;
+        facingRight = false;
     }
     if (keybinds.count("right") && keys[SDL_GetScancodeFromKey(keybinds["right"])]) {
         newPos.x += tileSize;
+        currentTexture = textureSide;
+        facingRight = true;
     }
     if (keybinds.count("up") && keys[SDL_GetScancodeFromKey(keybinds["up"])]) {
         newPos.y -= tileSize;
+        currentTexture = textureUp;
     }
     if (keybinds.count("down") && keys[SDL_GetScancodeFromKey(keybinds["down"])]) {
         newPos.y += tileSize;
+        currentTexture = textureDown;
     }
 
     if (!maze.checkCollision(newPos)) {
@@ -117,9 +123,14 @@ int Player::showWinScreen(SDL_Renderer* renderer) {
 }
 
 void Player::render(SDL_Renderer* renderer) {
-    if (texture) {
+    if (currentTexture) {
         SDL_Rect renderQuad = {rect.x, rect.y, rect.w, rect.h};
-        SDL_RenderCopy(renderer, texture, NULL, &renderQuad);
+        // Nếu texture là textureSide và hướng là phải, vẽ với flip ngang
+        if (currentTexture == textureSide && facingRight) {
+            SDL_RenderCopyEx(renderer, currentTexture, NULL, &renderQuad, 0, NULL, SDL_FLIP_HORIZONTAL);
+        } else {
+            SDL_RenderCopy(renderer, currentTexture, NULL, &renderQuad);
+        }
     } else {
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
         SDL_RenderFillRect(renderer, &rect);
@@ -170,23 +181,67 @@ bool Player::loadPosition(const std::string& filename) {
 }
 
 Player::~Player() {
-    if (texture) {
-        SDL_DestroyTexture(texture);
+    if (textureUp) {
+        SDL_DestroyTexture(textureUp);
+    }
+    if (textureDown) {
+        SDL_DestroyTexture(textureDown);
+    }
+    if (textureSide) {
+        SDL_DestroyTexture(textureSide);
     }
 }
 
+
 void Player::loadTexture() {
-    SDL_Surface* surface = IMG_Load("src/images/player.png");
+    // Khởi tạo các con trỏ về nullptr
+    textureUp = nullptr;
+    textureDown = nullptr;
+    textureSide = nullptr;
+    currentTexture = nullptr;
+
+    SDL_Surface* surface = IMG_Load("src/images/player_up.png");
     if (!surface) {
-        std::cerr << "⚠️ Lỗi: Không thể tải ảnh nhân vật! " << IMG_GetError() << std::endl;
-        texture = nullptr;
-        return;
+        std::cerr << "⚠️ Lỗi: Không thể tải ảnh nhân vật (up)! " << IMG_GetError() << std::endl;
+    } else {
+        textureUp = SDL_CreateTextureFromSurface(renderer, surface);
+        SDL_FreeSurface(surface);
+        if (!textureUp) {
+            std::cerr << "⚠️ Lỗi: Không thể tạo texture từ ảnh (up)! " << SDL_GetError() << std::endl;
+        }
     }
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    if (!texture) {
-        std::cerr << "⚠️ Lỗi: Không thể tạo texture từ ảnh! " << SDL_GetError() << std::endl;
+
+    surface = IMG_Load("src/images/player_down.png");
+    if (!surface) {
+        std::cerr << "⚠️ Lỗi: Không thể tải ảnh nhân vật (down)! " << IMG_GetError() << std::endl;
+    } else {
+        textureDown = SDL_CreateTextureFromSurface(renderer, surface);
+        SDL_FreeSurface(surface);
+        if (!textureDown) {
+            std::cerr << "⚠️ Lỗi: Không thể tạo texture từ ảnh (down)! " << SDL_GetError() << std::endl;
+        }
     }
+
+    surface = IMG_Load("src/images/player_side.png");
+    if (!surface) {
+        std::cerr << "⚠️ Lỗi: Không thể tải ảnh nhân vật (side)! " << IMG_GetError() << std::endl;
+    } else {
+        textureSide = SDL_CreateTextureFromSurface(renderer, surface);
+        SDL_FreeSurface(surface);
+        if (!textureSide) {
+            std::cerr << "⚠️ Lỗi: Không thể tạo texture từ ảnh (side)! " << SDL_GetError() << std::endl;
+        }
+    }
+    
+    // Chọn texture mặc định (ưu tiên textureDown, sau đó textureUp, cuối cùng textureSide)
+    if (textureDown)
+        currentTexture = textureDown;
+    else if (textureUp)
+        currentTexture = textureUp;
+    else if (textureSide)
+        currentTexture = textureSide;
+    else
+        std::cerr << "⚠️ Lỗi: Không có texture nào được load thành công!" << std::endl;
 }
 
 SDL_Texture* Player::renderText(const std::string &message, TTF_Font *font, SDL_Color color, SDL_Renderer *renderer) {

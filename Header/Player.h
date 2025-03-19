@@ -33,7 +33,10 @@ private:
     int speed;
     std::map<std::string, SDL_Keycode> keybinds;
 
-    SDL_Texture* texture;
+    SDL_Texture* textureUp;
+    SDL_Texture* textureDown;
+    SDL_Texture* textureSide;
+    SDL_Texture* currentTexture;
     SDL_Renderer* renderer;
     void loadTexture();
 
@@ -47,6 +50,7 @@ private:
     SDL_Texture* renderText(const std::string &message, TTF_Font *font, SDL_Color color, SDL_Renderer *renderer);
 
     bool returnToMenu = false;
+    bool facingRight = false;
 };
 
 #endif
