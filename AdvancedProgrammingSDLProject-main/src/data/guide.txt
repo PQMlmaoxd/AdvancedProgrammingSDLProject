@@ -1,6 +1,0 @@
-Hướng dẫn chơi game:
-- Dùng phím MŨI TÊN TRÁI/PHẢI để di chuyển.
-- Nhấn UP để nhảy.
-- Trong Story Mode, vượt qua các chướng ngại vật.
-- Trong Endless Mode, cố gắng sống sót lâu nhất.
-- Nhấn ESC để thoát game.
