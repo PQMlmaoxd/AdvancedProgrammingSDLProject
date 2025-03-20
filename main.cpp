@@ -1,10 +1,10 @@
 #define SDL_MAIN_HANDLED
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <SDL_ttf.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include "Utils.h"
+
 #ifdef _WIN32
     #include <direct.h>
 #else
@@ -16,7 +16,8 @@
 #include "Menu.h"
 #include "PauseMenu.h"
 #include "SettingsMenu.h"
-#include "Maze.h"
+#include "Player.h"
+#include "Utils.h"
 
 SDL_Texture* renderText(const std::string &message, TTF_Font *font, SDL_Color color, SDL_Renderer *renderer) {
     SDL_Surface* surface = TTF_RenderText_Solid(font, message.c_str(), color);
@@ -91,7 +92,7 @@ int main(int argc, char* argv[]) {
     TTF_Init();
     SDL_Window* window = SDL_CreateWindow("Shadow Maze", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    TTF_Font* font = TTF_OpenFont("src/fonts/arial.ttf", 24);
+    TTF_Font* font = TTF_OpenFont("resources/fonts/arial.ttf", 24);
     if (!font) {
         std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
         return 1;
