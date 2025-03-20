@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <fstream>
+#include <random>
 #include <vector>
 #include <algorithm>
 #include <iostream>
@@ -46,7 +47,7 @@ void Maze::generate() {
         }
     }
 
-    std::random_shuffle(edges.begin(), edges.end());
+    std::shuffle(edges.begin(), edges.end(), std::default_random_engine());
 
     parent.resize(rows * cols);
     rank.resize(rows * cols, 0);
