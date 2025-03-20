@@ -54,13 +54,14 @@ void Player::handleInput(const Uint8* keys, const Maze& maze) {
 }
 
 void Player::update(const Maze& maze, SDL_Renderer* renderer) {
-    SDL_Rect goalRect = {maze.getGoalX() * tileSize, maze.getGoalY() * tileSize, tileSize, tileSize}; 
+    SDL_Rect goalRect = { maze.getGoalX(), maze.getGoalY(), tileSize, tileSize };
 
     if (SDL_HasIntersection(&rect, &goalRect)) {
         int result = showWinScreen(renderer);
         if (result == -2) {  // Nếu chọn "Menu", đánh dấu để quay lại menu chính
             returnToMenu = true;
-        } else if (result == -1) { // Nếu chọn "Thoát game"
+        }
+        else if (result == -1) { // Nếu chọn "Thoát game"
             SDL_Quit();
             exit(0);
         }
