@@ -4,13 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <SDL2/SDL_image.h>
-#include <dirent.h>  // Thư viện duyệt thư mục
-#ifdef _WIN32
-    #include <direct.h>  // Windows: _mkdir
-#else
-    #include <sys/stat.h>  // Linux/macOS: mkdir
-    #include <sys/types.h>
-#endif
+#include <filesystem> // Thư viện duyệt thư mục
 
 // Định nghĩa biến tĩnh
 std::string Menu::chosenSaveFile = "";
@@ -79,18 +73,16 @@ int Menu::chooseNewOrLoad() {
 std::string Menu::chooseSaveFile() {
     std::vector<std::string> saveFiles;
 
-    DIR* dir = opendir("Save");
-    if (!dir) return ""; // Nếu thư mục Save không tồn tại
+	std::filesystem::path p{"Save"};
+    if (!std::filesystem::exists(p)) return ""; // Nếu thư mục Save không tồn tại
 
-    struct dirent* entry;
-    while ((entry = readdir(dir)) != NULL) {
-        std::string filename = entry->d_name;
-        if (filename.find(".txt") != std::string::npos) {
-            saveFiles.push_back(filename);
-        }
-    }
-    closedir(dir);
-
+	for (auto& entry : std::filesystem::directory_iterator(p)) {
+		std::string filename = entry.path().filename().string();
+		if (filename.find(".txt") != std::string::npos) {
+			saveFiles.push_back(filename);
+		}
+	}
+	
     if (saveFiles.empty()) return "";
     int selection = 0;
     SDL_Event e;
