@@ -9,47 +9,64 @@ Player::Player(SDL_Renderer* renderer, Maze& maze) : renderer(renderer) {
     if (!loadPosition("save.txt")) { 
         rect = {maze.getStartX(), maze.getStartY(), 32, 32};
     }
-    speed = 4;
     loadKeybinds();
     loadTexture();
 }
 
 Player::Player(int x, int y, SDL_Renderer* renderer) : renderer(renderer) {
+    lastFrameTime = SDL_GetTicks();
     rect = {x, y, 32, 32};
-    speed = 1;
+    speed = 275;
     loadKeybinds();
     loadTexture();
 }
 
 void Player::handleInput(const Uint8* keys, const Maze& maze) {
+    std::cout << "Current speed: " << speed << std::endl;
+    // Tính delta time (thời gian giữa 2 frame)
     Uint32 currentTime = SDL_GetTicks();
-    if (currentTime - lastMoveTime < moveDelay) return;
+    float deltaTime = (currentTime - lastFrameTime) / 1000.0f;
+    lastFrameTime = currentTime;
 
     SDL_Rect newPos = rect;
+    int moveX = 0;
+    int moveY = 0;
 
+    // Kiểm tra trạng thái phím để xác định hướng di chuyển
     if (keybinds.count("left") && keys[SDL_GetScancodeFromKey(keybinds["left"])]) {
-        newPos.x -= tileSize;
+        moveX = -1;
         currentTexture = textureSide;
         facingRight = false;
     }
     if (keybinds.count("right") && keys[SDL_GetScancodeFromKey(keybinds["right"])]) {
-        newPos.x += tileSize;
+        moveX = 1;
         currentTexture = textureSide;
         facingRight = true;
     }
     if (keybinds.count("up") && keys[SDL_GetScancodeFromKey(keybinds["up"])]) {
-        newPos.y -= tileSize;
+        moveY = -1;
         currentTexture = textureUp;
     }
     if (keybinds.count("down") && keys[SDL_GetScancodeFromKey(keybinds["down"])]) {
-        newPos.y += tileSize;
+        moveY = 1;
         currentTexture = textureDown;
     }
 
+    // Cập nhật vị trí dựa trên tốc độ và deltaTime (ví dụ speed = 200 pixel/giây)
+    newPos.x += static_cast<int>(moveX * speed * deltaTime);
+    newPos.y += static_cast<int>(moveY * speed * deltaTime);
+
     if (!maze.checkCollision(newPos)) {
-        rect = newPos;
-        savePosition("save.txt");
-        lastMoveTime = currentTime;
+        // Chỉ cập nhật nếu vị trí thay đổi
+        if (newPos.x != rect.x || newPos.y != rect.y) {
+            rect = newPos;
+            // Chỉ lưu vị trí sau mỗi 500ms thay đổi, tránh lưu liên tục mỗi frame
+            static Uint32 lastSaveTime = 0;
+            if (currentTime - lastSaveTime >= 500) {
+                savePosition("save.txt");
+                lastSaveTime = currentTime;
+            }
+        }
     }
 }
 

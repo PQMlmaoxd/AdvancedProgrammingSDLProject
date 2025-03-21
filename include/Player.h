@@ -51,6 +51,8 @@ private:
 
     bool returnToMenu = false;
     bool facingRight = false;
+
+    Uint32 lastFrameTime;
 };
 
 #endif
