@@ -28,6 +28,7 @@ private:
     SDL_Texture* renderText(const std::string& text);
     void renderMenu();
     void saveGame();
+    bool confirmconfirmSaveGame();
 };
 
 #endif

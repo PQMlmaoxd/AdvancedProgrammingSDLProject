@@ -12,6 +12,50 @@ textColor = {255, 255, 255, 255};
 options = {"Tiếp tục", "Chơi lại", "Lưu game", "Về menu chính", "Thoát game"};
 }
 
+bool PauseMenu::confirmconfirmSaveGame() {
+    SDL_Event e;
+    bool choosing = true;
+    int selected = 0; // 0 = Không, 1 = Có
+
+    while (choosing) {
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_QUIT) return false;
+            if (e.type == SDL_KEYDOWN) {
+                switch (e.key.keysym.sym) {
+                case SDLK_LEFT:
+                case SDLK_RIGHT:
+                    selected = 1 - selected;
+                    break;
+                case SDLK_RETURN:
+                    return selected == 1;
+                case SDLK_ESCAPE:
+                    return false;
+                }
+            }
+        }
+
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+
+        SDL_Texture* message = renderText("Bạn có muốn lưu game không?");
+        SDL_Rect messageRect = { 200, 200, 400, 50 };
+        SDL_RenderCopy(renderer, message, NULL, &messageRect);
+        SDL_DestroyTexture(message);
+
+        SDL_Texture* yesText = renderText(selected == 1 ? "> Có <" : "Có");
+        SDL_Texture* noText = renderText(selected == 0 ? "> Không <" : "Không");
+        SDL_Rect yesRect = { 250, 300, 100, 40 };
+        SDL_Rect noRect = { 450, 300, 100, 40 };
+        SDL_RenderCopy(renderer, yesText, NULL, &yesRect);
+        SDL_RenderCopy(renderer, noText, NULL, &noRect);
+        SDL_DestroyTexture(yesText);
+        SDL_DestroyTexture(noText);
+
+        SDL_RenderPresent(renderer);
+        SDL_Delay(16);
+    }
+    return false;
+}
 
 PauseMenu::~PauseMenu() {
     TTF_CloseFont(font);
@@ -94,39 +138,41 @@ int PauseMenu::run() {
 
     while (paused) {
         while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) return 3; 
+            if (e.type == SDL_QUIT) return 3;
             if (e.type == SDL_KEYDOWN) {
                 switch (e.key.keysym.sym) {
-                    case SDLK_UP:
-                        selectedOption = (selectedOption - 1 + options.size()) % options.size();
-                        break;
-                    case SDLK_DOWN:
-                        selectedOption = (selectedOption + 1) % options.size();
-                        break;
-                    case SDLK_RETURN:
-                        if (selectedOption == 0) return 0;      // Tiếp tục game
-                        if (selectedOption == 1) return 1;      // Chơi lại
-                        if (selectedOption == 2) {              // Lưu game
-                            saveGame();
-                            return 0;
-                        }
-                        if (selectedOption == 3) { // Về menu chính
-                            saveGame();
-                            player.setReturnToMenu(true);
-                            return -2;
-                        }
-                        if (selectedOption == 4) { // Thoát game
-                            if (confirmExit()) {
-                                saveGame(); 
-                                SDL_DestroyRenderer(renderer);
-                                SDL_DestroyWindow(SDL_GetWindowFromID(1));
-                                SDL_Quit();
-                                exit(0);
-                            }
-                        }
-                        break;
-                    case SDLK_ESCAPE:
+                case SDLK_UP:
+                    selectedOption = (selectedOption - 1 + options.size()) % options.size();
+                    break;
+                case SDLK_DOWN:
+                    selectedOption = (selectedOption + 1) % options.size();
+                    break;
+                case SDLK_RETURN:
+                    if (selectedOption == 0) return 0;      // Tiếp tục game
+                    if (selectedOption == 1) return 1;      // Chơi lại
+                    if (selectedOption == 2) {              // Lưu game
+                        saveGame();
                         return 0;
+                    }
+                    if (selectedOption == 3) { // Về menu chính
+                        if (confirmconfirmSaveGame()) {
+                            saveGame();
+                        }
+                        player.setReturnToMenu(true);
+                        return -2;
+                    }
+                    if (selectedOption == 4) { // Thoát game
+                        if (confirmconfirmSaveGame()) {
+                            saveGame();
+                        }
+                        SDL_DestroyRenderer(renderer);
+                        SDL_DestroyWindow(SDL_GetWindowFromID(1));
+                        SDL_Quit();
+                        exit(0);
+                    }
+                    break;
+                case SDLK_ESCAPE:
+                    return 0;
                 }
             }
         }
@@ -175,5 +221,8 @@ void PauseMenu::saveGame() {
 
     showConfirmationScreen("Game đã được lưu!");
 }
+
+
+
 
 
