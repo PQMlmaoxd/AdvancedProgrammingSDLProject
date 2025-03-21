@@ -47,7 +47,9 @@ void Maze::generate() {
         }
     }
 
-    std::shuffle(edges.begin(), edges.end(), std::default_random_engine());
+    unsigned seed = static_cast<unsigned>(time(0));
+    std::default_random_engine engine(seed);
+    std::shuffle(edges.begin(), edges.end(), engine);
 
     parent.resize(rows * cols);
     rank.resize(rows * cols, 0);
