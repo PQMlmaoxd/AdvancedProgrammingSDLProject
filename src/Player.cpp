@@ -22,7 +22,6 @@ Player::Player(int x, int y, SDL_Renderer* renderer) : renderer(renderer) {
 }
 
 void Player::handleInput(const Uint8* keys, const Maze& maze) {
-    std::cout << "Current speed: " << speed << std::endl;
     // Tính delta time (thời gian giữa 2 frame)
     Uint32 currentTime = SDL_GetTicks();
     float deltaTime = (currentTime - lastFrameTime) / 1000.0f;

@@ -100,6 +100,23 @@ std::string Menu::chooseSaveFile() {
     }
 }
 
+void Menu::switchToGameMusic() {
+    // Dừng nhạc menu
+    Mix_HaltMusic();
+    // Giải phóng bản nhạc menu nếu cần (nếu bạn không còn dùng nữa)
+    Mix_FreeMusic(backgroundMusic);
+    // Tải nhạc game mới
+    Mix_Music* gameMusic = Mix_LoadMUS("resources/audio/game_music.mp3");
+    if (!gameMusic) {
+        std::cerr << "Failed to load game music: " << Mix_GetError() << std::endl;
+        return;
+    }
+    // Phát nhạc game, lặp vô hạn
+    Mix_PlayMusic(gameMusic, -1);
+    // Nếu bạn muốn lưu lại gameMusic để giải phóng sau này, hãy gán lại cho biến backgroundMusic hoặc biến riêng.
+    backgroundMusic = gameMusic;
+}
+
 int Menu::run() {
     bool running = true;
     SDL_Event e;
@@ -122,13 +139,18 @@ int Menu::run() {
                         int choice = chooseNewOrLoad();
                         if (choice == 0) {  // New Game
                             int ret = handleNewGame();
-                            if (ret != -1)
+                            if (ret != -1) {
+                                switchToGameMusic();
                                 return gameMode + ret;
+                            }
                         }
                         if (choice == 1) {  // Load Game
                             int ret = handleLoadGame();
-                            if (ret == 20) return 20;  // Vào game ngay lập tức
-                        }                        
+                            if (ret == 20) {
+                                switchToGameMusic();
+                                return 20;  // Vào game ngay lập tức
+                            }
+                        }
                     }
                      else if (selectedOption == 2) {
                         showGuide();

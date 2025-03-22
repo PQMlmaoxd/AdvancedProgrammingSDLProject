@@ -52,6 +52,8 @@ private:
     int blinkTimer;
     bool blinkState;
     Maze maze;
+
+    void switchToGameMusic();
 };
 
 #endif
