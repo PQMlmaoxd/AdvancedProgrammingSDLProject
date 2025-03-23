@@ -4,6 +4,10 @@
 #include <SDL_image.h>
 #include <SDL_ttf.h> // 🔹 Đảm bảo sử dụng SDL_ttf để hiển thị chữ
 #include "Maze.h" 
+#include <sstream>
+#include <filesystem>
+namespace fs = std::filesystem;
+
 
 Player::Player(SDL_Renderer* renderer, Maze& maze) : renderer(renderer) {
     if (!loadPosition("save.txt")) { 
@@ -70,21 +74,46 @@ void Player::handleInput(const Uint8* keys, const Maze& maze) {
 }
 
 void Player::update(Maze& maze, SDL_Renderer* renderer) {
-    // Kiểm tra va chạm với key (nếu chưa thu thập)
-    if (maze.checkKeyCollision(rect)) {
-        collectKey(); // Đánh dấu rằng player đã thu thập key
-        maze.unlockDoor();
+    // Cập nhật thời gian chơi dựa trên startTime
+    setPlayTime(SDL_GetTicks() - startTime);
+
+    // Kiểm tra va chạm với key (chỉ khi player chưa có key)
+    if (!hasKey() && maze.checkKeyCollision(rect)) {
+        collectKey();       // Đánh dấu player đã thu thập key
+        maze.unlockDoor();    // Mở khóa cửa exit
         std::cout << "Key collected!" << std::endl;
     }
 
-    // Kiểm tra va chạm với cổng exit
+    // Kiểm tra va chạm với cổng exit, và chỉ xử lý một lần khi thắng
     SDL_Rect goalRect = { maze.getGoalX(), maze.getGoalY(), tileSize, tileSize };
-    if (SDL_HasIntersection(&rect, &goalRect)) {
-        // Chỉ cho phép thoát game nếu player đã có key
+    if (SDL_HasIntersection(&rect, &goalRect) && !winProcessed) {
         if (!hasKey()) {
             std::cout << "Exit is locked. You need a key to exit!" << std::endl;
         }
         else {
+            // Cập nhật Best Time ngay khi player chạm exit
+            Uint32 currentPlayTime = getPlayTime();
+            Uint32 bestTime = 0;
+            std::ifstream bestTimeFile("Save/time/best_time.txt");
+            if (bestTimeFile.is_open()) {
+                bestTimeFile >> bestTime;
+                bestTimeFile.close();
+            }
+            std::cout << "Current play time: " << currentPlayTime << " ms, Best time: " << bestTime << " ms" << std::endl;
+            if (bestTime == 0 || currentPlayTime < bestTime) {
+                fs::create_directories("Save/time");  // Tạo thư mục nếu chưa tồn tại
+                std::ofstream outFile("Save/time/best_time.txt");
+                if (outFile.is_open()) {
+                    outFile << currentPlayTime;
+                    outFile.close();
+                    std::cout << "New best time saved: " << currentPlayTime << " ms" << std::endl;
+                }
+                else {
+                    std::cerr << "Failed to open Save/time/best_time.txt for writing!" << std::endl;
+                }
+            }
+            winProcessed = true;  // Đánh dấu rằng đã xử lý thắng
+
             int result = showWinScreen(renderer);
             if (result == -2) {  // Nếu chọn "Menu", đánh dấu để quay lại menu chính
                 returnToMenu = true;
@@ -102,48 +131,68 @@ int Player::showWinScreen(SDL_Renderer* renderer) {
     int selectedOption = 0;
     SDL_Event e;
 
+    // Đọc record thời gian từ file "Save/time/best_time.txt"
+    Uint32 bestTime = 0;
+    std::ifstream inFile("Save/time/best_time.txt");
+    if (inFile.is_open()) {
+        inFile >> bestTime;
+        inFile.close();
+    }
+
+    std::ostringstream bestTimeMsg;
+    if (bestTime > 0) {
+        bestTimeMsg << "Best Time: " << bestTime << " ms";
+    }
+    else {
+        bestTimeMsg << "Best Time: N/A";
+    }
+
     // Load font
     TTF_Font* font = TTF_OpenFont("resources/fonts/arial.ttf", 48);
     TTF_Font* optionFont = TTF_OpenFont("resources/fonts/arial.ttf", 28);
-    SDL_Color textColor = {255, 255, 255, 255};  // Màu trắng
+    SDL_Color textColor = { 255, 255, 255, 255 };
 
     while (choosing) {
-        // Xóa màn hình và tô nền đen
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        // Hiển thị "You Win!" phía trên
         SDL_Texture* winText = renderText("You Win!", font, textColor, renderer);
-        SDL_Rect winRect = {300, 100, 200, 60}; // Căn giữa phía trên
+        SDL_Rect winRect = { 300, 100, 200, 60 };
         SDL_RenderCopy(renderer, winText, NULL, &winRect);
         SDL_DestroyTexture(winText);
 
-        // Các lựa chọn phía dưới
-        std::vector<std::string> options = {"Escape", "Menu"};
+        SDL_Texture* bestTimeText = renderText(bestTimeMsg.str(), optionFont, textColor, renderer);
+        SDL_Rect bestTimeRect = { 300, 160, 200, 40 };
+        SDL_RenderCopy(renderer, bestTimeText, NULL, &bestTimeRect);
+        SDL_DestroyTexture(bestTimeText);
+
+        std::vector<std::string> options = { "Escape", "Menu" };
         for (size_t i = 0; i < options.size(); i++) {
-            SDL_Color optionColor = (i == selectedOption) ? SDL_Color{255, 255, 0, 255} : textColor;
+            SDL_Color optionColor = (i == selectedOption) ? SDL_Color{ 255, 255, 0, 255 } : textColor;
             SDL_Texture* optionText = renderText(options[i], optionFont, optionColor, renderer);
-            SDL_Rect optionRect = {300, 250 + (int)i * 50, 200, 40}; // Hiển thị từ giữa màn hình xuống
+            SDL_Rect optionRect = { 300, 250 + (int)i * 50, 200, 40 };
             SDL_RenderCopy(renderer, optionText, NULL, &optionRect);
             SDL_DestroyTexture(optionText);
         }
 
         SDL_RenderPresent(renderer);
 
-        // Xử lý sự kiện chọn lựa
         while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) return -1;
+            if (e.type == SDL_QUIT)
+                return -1;
             if (e.type == SDL_KEYDOWN) {
                 switch (e.key.keysym.sym) {
-                    case SDLK_UP:
-                        selectedOption = (selectedOption - 1 + options.size()) % options.size();
-                        break;
-                    case SDLK_DOWN:
-                        selectedOption = (selectedOption + 1) % options.size();
-                        break;
-                    case SDLK_RETURN:
-                        if (selectedOption == 0) return -1; // Thoát game
-                        if (selectedOption == 1) return -2; // Quay lại menu chính
+                case SDLK_UP:
+                    selectedOption = (selectedOption - 1 + options.size()) % options.size();
+                    break;
+                case SDLK_DOWN:
+                    selectedOption = (selectedOption + 1) % options.size();
+                    break;
+                case SDLK_RETURN:
+                    if (selectedOption == 0)
+                        return -1; // Thoát game
+                    if (selectedOption == 1)
+                        return -2; // Quay lại menu chính
                 }
             }
         }
@@ -297,6 +346,14 @@ void Player::collectKey() {
 
 bool Player::hasKey() const {
     return keyCollected;
+}
+
+void Player::setPlayTime(Uint32 time) {
+    playTime = time;
+}
+
+Uint32 Player::getPlayTime() const {
+    return playTime;
 }
 
 

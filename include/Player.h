@@ -31,6 +31,10 @@ public:
     void collectKey();
     bool hasKey() const;
 
+    void setPlayTime(Uint32 time);
+    Uint32 getPlayTime() const;
+    void setStartTime(Uint32 time) { startTime = time; }
+
 private:
     SDL_Rect rect;
     int speed;
@@ -58,6 +62,10 @@ private:
     Uint32 lastFrameTime;
 
     bool keyCollected = false;
+    
+    Uint32 playTime = 0;
+    Uint32 startTime;
+    bool winProcessed = false;
 };
 
 #endif

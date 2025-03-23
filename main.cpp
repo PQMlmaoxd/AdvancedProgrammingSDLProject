@@ -39,67 +39,92 @@ int startGame(SDL_Renderer* renderer, const std::string& mazeFile, const std::st
     }
     mazeCheck.close();
 
-    // Gọi spawnKey để đặt vị trí key ngẫu nhiên và load texture
+    // Spawn key sau khi tạo/load mê cung
     maze.spawnKey(renderer);
 
     // Tạo Player
     Player player(maze.getStartX(), maze.getStartY(), renderer);
-    player.setReturnToMenu(false); // Đặt lại trạng thái trước khi vào game
+    player.setReturnToMenu(false);
 
-    // Nếu không phải game mới và tồn tại file player
     std::ifstream playerCheck(playerFile);
     if (!isNewGame && !playerCheck.fail()) {
         player.loadPosition(playerFile);
     }
     playerCheck.close();
 
-    // Tải keybind (các phím di chuyển)
     player.loadKeybinds();
+
+    // Khởi tạo timer: lưu thời gian bắt đầu game (tính theo milli giây)
+    Uint32 startTime = SDL_GetTicks();
+    player.setStartTime(startTime);
+
+    // Tạo font cho timer
+    TTF_Font* timerFont = TTF_OpenFont("resources/fonts/arial.ttf", 24);
+    if (!timerFont) {
+        std::cerr << "Failed to load timer font: " << TTF_GetError() << std::endl;
+    }
+    SDL_Color timerColor = { 255, 255, 255, 255 };
 
     bool running = true;
     SDL_Event e;
     while (running) {
-        // Lấy sự kiện
         while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) return -1;
+            if (e.type == SDL_QUIT)
+                return -1;
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) {
-                // Gọi PauseMenu
                 PauseMenu pauseMenu(renderer, maze, player);
                 int pauseChoice = pauseMenu.run();
                 if (pauseChoice == 1) {
-                    // Chơi lại => reset vị trí Player
                     player.resetPosition(maze.getStartX(), maze.getStartY());
+                    startTime = SDL_GetTicks();
+                    player.setStartTime(startTime);
                 }
                 if (pauseChoice == -2) {
-                    // Trở về menu chính
                     return 1;
                 }
             }
         }
 
-        // Xử lý input của player
+        // Cập nhật thời gian chơi của player
+        Uint32 elapsedTime = SDL_GetTicks() - startTime;
+        player.setPlayTime(elapsedTime);
+
         const Uint8* keys = SDL_GetKeyboardState(NULL);
         player.handleInput(keys, maze);
-
-        // Gọi update, trong đó có logic kiểm tra va chạm key và exit
         player.update(maze, renderer);
 
-        // Nếu Player đánh dấu quay lại menu (ví dụ sau khi Win)
+        // Nếu player đã thắng, update best time và thoát game loop sẽ được xử lý trong update()
         if (player.shouldReturnToMenu()) {
             return 1;
         }
 
-        // Vẽ game
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
+
         maze.render(renderer, player.getX(), player.getY());
         player.render(renderer);
+
+        // Render đồng hồ ở góc trên bên phải
+        {
+            std::ostringstream oss;
+            oss << "Time: " << elapsedTime << " ms";
+            SDL_Texture* timerText = renderText(oss.str(), timerFont, timerColor, renderer);
+            if (timerText) {
+                int textW, textH;
+                SDL_QueryTexture(timerText, NULL, NULL, &textW, &textH);
+                SDL_Rect timerRect = { SCREEN_WIDTH - textW - 10, 10, textW, textH };
+                SDL_RenderCopy(renderer, timerText, NULL, &timerRect);
+                SDL_DestroyTexture(timerText);
+            }
+        }
+
         SDL_RenderPresent(renderer);
     }
 
-    // Khi thoát vòng lặp game, lưu Maze và vị trí Player
     maze.saveMaze(mazeFile);
     player.savePosition(playerFile);
+
+    TTF_CloseFont(timerFont);
     return 0;
 }
 
