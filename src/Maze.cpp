@@ -30,6 +30,18 @@ Maze::Maze(bool forceNew) {
     generate();
 }
 
+Maze::~Maze() {
+    if (wallTexture) {
+        SDL_DestroyTexture(wallTexture);
+    }
+    if (pathTexture) {
+        SDL_DestroyTexture(pathTexture);
+    }
+    if (doorTexture) {
+        SDL_DestroyTexture(doorTexture);
+    }
+}
+
 void Maze::generate() {
     srand(time(0));
 
@@ -79,13 +91,34 @@ void Maze::generate() {
 }
 
 void Maze::render(SDL_Renderer* renderer, int playerX, int playerY) {
-    // Vẽ mê cung (sử dụng màu trắng cho các tường)
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    // Nếu texture chưa được load, tải chúng
+    if (!wallTexture || !pathTexture) {
+        loadTextures(renderer);
+    }
+
+    // Vẽ mê cung sử dụng texture cho từng ô:
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
+            SDL_Rect cell = { j * tileSize, i * tileSize, tileSize, tileSize };
             if (maze[i][j] == 1) {
-                SDL_Rect cell = { j * tileSize, i * tileSize, tileSize, tileSize };
-                SDL_RenderFillRect(renderer, &cell);
+                // Nếu có wallTexture, dùng nó; nếu không, vẽ bằng màu trắng
+                if (wallTexture) {
+                    SDL_RenderCopy(renderer, wallTexture, NULL, &cell);
+                }
+                else {
+                    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                    SDL_RenderFillRect(renderer, &cell);
+                }
+            }
+            else {
+                // Nếu có pathTexture, dùng nó; nếu không, vẽ bằng màu đen (hoặc màu khác tùy ý)
+                if (pathTexture) {
+                    SDL_RenderCopy(renderer, pathTexture, NULL, &cell);
+                }
+                else {
+                    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+                    SDL_RenderFillRect(renderer, &cell);
+                }
             }
         }
     }
@@ -93,11 +126,10 @@ void Maze::render(SDL_Renderer* renderer, int playerX, int playerY) {
     // Vẽ cửa exit:
     SDL_Rect goalRect = { goalX * tileSize, goalY * tileSize, tileSize, tileSize };
     if (doorLocked) {
-        // Nếu cửa vẫn khóa, kiểm tra và tải doorTexture nếu chưa có
+        // Nếu cửa khóa, kiểm tra và tải doorTexture nếu chưa có
         if (!doorTexture) {
             loadDoorTexture(renderer);
         }
-        // Nếu có doorTexture, vẽ nó; nếu không, dùng fallback vẽ hộp màu xám
         if (doorTexture) {
             SDL_RenderCopy(renderer, doorTexture, NULL, &goalRect);
         }
@@ -303,6 +335,27 @@ void Maze::unlockDoor() {
     // Nếu muốn, có thể thay đổi tile tại exit thành 0 để không gây va chạm nữa:
     maze[goalY][goalX] = 0;
 }
+
+void Maze::loadTextures(SDL_Renderer* renderer) {
+    SDL_Surface* wallSurface = IMG_Load("resources/images/wall.png");
+    if (!wallSurface) {
+        std::cerr << "Failed to load wall image: " << IMG_GetError() << std::endl;
+    }
+    else {
+        wallTexture = SDL_CreateTextureFromSurface(renderer, wallSurface);
+        SDL_FreeSurface(wallSurface);
+    }
+
+    SDL_Surface* pathSurface = IMG_Load("resources/images/path.png");
+    if (!pathSurface) {
+        std::cerr << "Failed to load path image: " << IMG_GetError() << std::endl;
+    }
+    else {
+        pathTexture = SDL_CreateTextureFromSurface(renderer, pathSurface);
+        SDL_FreeSurface(pathSurface);
+    }
+}
+
 
 
 

@@ -15,6 +15,7 @@
 class Maze {
 public:
     Maze(bool forceNew = false);
+    virtual ~Maze();
     void generate(); // 🔹 Sinh mê cung bằng thuật toán Kruskal
     void render(SDL_Renderer* renderer, int playerX, int playerY);
     int getStartX() const; // 🔹 Đánh dấu `const` vì không thay đổi dữ liệu
@@ -64,6 +65,10 @@ private:
     bool keyCollected = false;
     bool doorLocked = true;
     SDL_Texture* doorTexture = nullptr;
+
+    SDL_Texture* wallTexture = nullptr;
+    SDL_Texture* pathTexture = nullptr;
+    void loadTextures(SDL_Renderer* renderer);
 
 };
 
