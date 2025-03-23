@@ -69,17 +69,30 @@ void Player::handleInput(const Uint8* keys, const Maze& maze) {
     }
 }
 
-void Player::update(const Maze& maze, SDL_Renderer* renderer) {
-    SDL_Rect goalRect = { maze.getGoalX(), maze.getGoalY(), tileSize, tileSize };
+void Player::update(Maze& maze, SDL_Renderer* renderer) {
+    // Kiểm tra va chạm với key (nếu chưa thu thập)
+    if (maze.checkKeyCollision(rect)) {
+        collectKey(); // Đánh dấu rằng player đã thu thập key
+        maze.unlockDoor();
+        std::cout << "Key collected!" << std::endl;
+    }
 
+    // Kiểm tra va chạm với cổng exit
+    SDL_Rect goalRect = { maze.getGoalX(), maze.getGoalY(), tileSize, tileSize };
     if (SDL_HasIntersection(&rect, &goalRect)) {
-        int result = showWinScreen(renderer);
-        if (result == -2) {  // Nếu chọn "Menu", đánh dấu để quay lại menu chính
-            returnToMenu = true;
+        // Chỉ cho phép thoát game nếu player đã có key
+        if (!hasKey()) {
+            std::cout << "Exit is locked. You need a key to exit!" << std::endl;
         }
-        else if (result == -1) { // Nếu chọn "Thoát game"
-            SDL_Quit();
-            exit(0);
+        else {
+            int result = showWinScreen(renderer);
+            if (result == -2) {  // Nếu chọn "Menu", đánh dấu để quay lại menu chính
+                returnToMenu = true;
+            }
+            else if (result == -1) { // Nếu chọn "Thoát game"
+                SDL_Quit();
+                exit(0);
+            }
         }
     }
 }
@@ -277,5 +290,14 @@ SDL_Texture* Player::renderText(const std::string &message, TTF_Font *font, SDL_
 
 int Player::getX() const { return rect.x + rect.w / 2; }
 int Player::getY() const { return rect.y + rect.h / 2; }
+
+void Player::collectKey() {
+    keyCollected = true;
+}
+
+bool Player::hasKey() const {
+    return keyCollected;
+}
+
 
 

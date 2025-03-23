@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\Key.h" />
     <ClInclude Include="include\Maze.h" />
     <ClInclude Include="include\Menu.h" />
     <ClInclude Include="include\PauseMenu.h" />
@@ -28,6 +29,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="src\Key.cpp" />
     <ClCompile Include="src\Maze.cpp" />
     <ClCompile Include="src\Menu.cpp" />
     <ClCompile Include="src\PauseMenu.cpp" />

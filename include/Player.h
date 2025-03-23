@@ -13,7 +13,7 @@ public:
     Player(int x, int y, SDL_Renderer* renderer);
 
     void handleInput(const Uint8* keys, const Maze& maze); 
-    void update(const Maze& maze, SDL_Renderer* renderer); // ⚡ Thêm renderer vào update()
+    void update(Maze& maze, SDL_Renderer* renderer); // ⚡ Thêm renderer vào update()
 
     void render(SDL_Renderer* renderer);
     void resetPosition(int x, int y);
@@ -27,6 +27,9 @@ public:
     void setReturnToMenu(bool value) { returnToMenu = value; }  // ✅ Setter để cập nhật trạng thái
     int getX() const;
     int getY() const;
+
+    void collectKey();
+    bool hasKey() const;
 
 private:
     SDL_Rect rect;
@@ -53,6 +56,8 @@ private:
     bool facingRight = false;
 
     Uint32 lastFrameTime;
+
+    bool keyCollected = false;
 };
 
 #endif

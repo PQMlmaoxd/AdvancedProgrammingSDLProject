@@ -2,6 +2,7 @@
 #define MAZE_H
 
 #include <SDL.h>
+#include <Key.h>
 #include <vector>
 #include <string>
 #include <fstream>
@@ -29,6 +30,14 @@ public:
     // 🔹 Hiệu ứng bóng tối
     void createShadowMask(SDL_Renderer* renderer, int playerX, int playerY);
 
+    void spawnKey(SDL_Renderer* renderer);
+    bool hasKey() const;
+
+    bool checkKeyCollision(const SDL_Rect& playerRect);
+    void unlockDoor();
+    void loadDoorTexture(SDL_Renderer* renderer);
+
+
 private:
     struct Edge {
         int x1, y1, x2, y2;
@@ -50,6 +59,11 @@ private:
     // 🔹 Hiệu ứng bóng tối
     SDL_Texture* shadowMask = nullptr; // ✅ Thêm biến quản lý hiệu ứng bóng tối
     void drawLight(SDL_Renderer* renderer, int x, int y, int radius); // ✅ Hàm vẽ vùng sáng
+
+    Key key;
+    bool keyCollected = false;
+    bool doorLocked = true;
+    SDL_Texture* doorTexture = nullptr;
 
 };
 
