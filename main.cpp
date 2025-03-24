@@ -39,9 +39,6 @@ int startGame(SDL_Renderer* renderer, const std::string& mazeFile, const std::st
     }
     mazeCheck.close();
 
-    // Spawn key sau khi tạo/load mê cung
-    maze.spawnKey(renderer);
-
     // Tạo Player
     Player player(maze.getStartX(), maze.getStartY(), renderer);
     player.setReturnToMenu(false);
@@ -80,20 +77,25 @@ int startGame(SDL_Renderer* renderer, const std::string& mazeFile, const std::st
                     player.setStartTime(startTime);
                 }
                 if (pauseChoice == -2) {
-                    return 1;
+                    return 1; // Quay về menu chính
                 }
             }
         }
 
-        // Cập nhật thời gian chơi của player
+        // Tính thời gian đã trôi qua
         Uint32 elapsedTime = SDL_GetTicks() - startTime;
+
+        // Gọi spawnKey mỗi vòng lặp, key sẽ chỉ xuất hiện sau 20s (và chỉ spawn một lần)
+        maze.spawnKey(renderer, elapsedTime);
+
+        // Cập nhật thời gian chơi của player
         player.setPlayTime(elapsedTime);
 
         const Uint8* keys = SDL_GetKeyboardState(NULL);
         player.handleInput(keys, maze);
         player.update(maze, renderer);
 
-        // Nếu player đã thắng, update best time và thoát game loop sẽ được xử lý trong update()
+        // Nếu player thắng (được xử lý trong Player::update), thoát vòng lặp
         if (player.shouldReturnToMenu()) {
             return 1;
         }
@@ -104,7 +106,7 @@ int startGame(SDL_Renderer* renderer, const std::string& mazeFile, const std::st
         maze.render(renderer, player.getX(), player.getY());
         player.render(renderer);
 
-        // Render đồng hồ ở góc trên bên phải
+        // Render đồng hồ (timer) ở góc trên bên phải
         {
             std::ostringstream oss;
             oss << "Time: " << elapsedTime << " ms";

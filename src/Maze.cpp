@@ -285,22 +285,30 @@ void Maze::createShadowMask(SDL_Renderer* renderer, int playerX, int playerY) {
     SDL_SetRenderTarget(renderer, NULL);
 }
 
-void Maze::spawnKey(SDL_Renderer* renderer) {
-    // Tạo vị trí ngẫu nhiên trong mê cung
-    // Ví dụ: đảm bảo khoảng cách từ spawn (startX, startY) > 3 ô
-    int keyX, keyY;
-    do {
-        keyX = (rand() % cols);
-        keyY = (rand() % rows);
-    } while ((abs(keyX - startX) < 3 && abs(keyY - startY) < 3) || maze[keyY][keyX] != 0);
+void Maze::spawnKey(SDL_Renderer* renderer, Uint32 elapsedTime) {
+    // Nếu chưa đủ 20 giây hoặc key đã được spawn rồi, không làm gì cả
+    if (keySpawned || elapsedTime < keySpawnTime) {
+        return;
+    }
 
-    // Đặt vị trí key theo pixel (nếu mỗi ô có kích thước tileSize)
+    // Chọn ngẫu nhiên một trong 2 góc:
+    // Giả sử spawn của player ở góc trên bên trái (vị trí (1,1)) và exit ở góc dưới bên phải (vị trí (cols-2, rows-2))
+    // Các góc còn lại: góc trên bên phải (cols-2, 1) và góc dưới bên trái (1, rows-2)
+    int positions[2][2] = { {cols - 2, 1}, {1, rows - 2} };
+    int index = rand() % 2;  // Chọn ngẫu nhiên 0 hoặc 1
+
+    int keyX = positions[index][0];
+    int keyY = positions[index][1];
+
+    // Đặt vị trí key theo pixel (mỗi ô có kích thước tileSize)
     key.setPosition(keyX * tileSize, keyY * tileSize);
 
-    // Tải texture cho key (ví dụ: "resources/images/key.png")
+    // Tải texture cho key
     if (!key.loadTexture(renderer, "resources/images/key.png")) {
         std::cerr << "Failed to load key texture" << std::endl;
     }
+
+    keySpawned = true;
 }
 
 bool Maze::checkKeyCollision(const SDL_Rect& playerRect) {

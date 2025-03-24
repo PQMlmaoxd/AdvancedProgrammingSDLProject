@@ -31,7 +31,7 @@ public:
     // 🔹 Hiệu ứng bóng tối
     void createShadowMask(SDL_Renderer* renderer, int playerX, int playerY);
 
-    void spawnKey(SDL_Renderer* renderer);
+    void spawnKey(SDL_Renderer* renderer, Uint32 elapsedTime);
     bool hasKey() const;
 
     bool checkKeyCollision(const SDL_Rect& playerRect);
@@ -65,6 +65,8 @@ private:
     bool keyCollected = false;
     bool doorLocked = true;
     SDL_Texture* doorTexture = nullptr;
+    Uint32 keySpawnTime = 20000;
+    bool keySpawned = false;
 
     SDL_Texture* wallTexture = nullptr;
     SDL_Texture* pathTexture = nullptr;
