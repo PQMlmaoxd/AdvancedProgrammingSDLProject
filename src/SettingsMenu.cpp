@@ -2,6 +2,7 @@
 #include <SDL_mixer.h>
 #include <iostream>
 #include <fstream>
+#include <string>
 
 SettingsMenu::SettingsMenu(SDL_Renderer* renderer)
     : renderer(renderer), volume(50), selectedItem(0), blinkTimer(0), blinkState(true) {
@@ -134,8 +135,14 @@ void SettingsMenu::render() {
     SDL_RenderFillRect(renderer, &volumeSlider);
     SDL_RenderFillRect(renderer, &volumeHandle);
 
-    SDL_Texture* volumeText = renderText("Âm lượng: " + std::to_string(volume));
-    SDL_Rect volumeTextRect = {50, 140, 200, 30};
+    std::string line = "Âm lượng: " + std::to_string(volume);
+
+    SDL_Surface* surface = TTF_RenderUTF8_Blended(font, line.c_str(), { 255, 255, 255, 255 });
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, surface);
+
+    SDL_Texture* volumeText = textTexture;
+    SDL_Rect volumeTextRect = {50, 140, surface->w, surface->h};
+    SDL_FreeSurface(surface);
     SDL_RenderCopy(renderer, volumeText, NULL, &volumeTextRect);
     SDL_DestroyTexture(volumeText);
 
@@ -150,8 +157,12 @@ void SettingsMenu::render() {
 
     for (int i = 0; i < 4; i++) {
         std::string keyText = selectingKey[i] ? "..." : SDL_GetKeyName(keybinds[keyNames[i]]);
-        SDL_Texture* keybindText = renderText(keyLabels[i] + ": " + keyText);
-        SDL_Rect keybindRect = {50, 200 + (i * 50), 250, 30};
+        std::string choice = keyLabels[i] + ": " + keyText;
+        SDL_Surface* surface = TTF_RenderUTF8_Blended(font, choice.c_str(), { 255, 255, 255, 255 });
+        SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, surface);
+        SDL_Texture* keybindText = textTexture;
+        SDL_Rect keybindRect = {50, 200 + (i * 50), surface->w, surface->h};
+        SDL_FreeSurface(surface);
 
         if (selectedItem == i + 1 && blinkState) {
             SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
@@ -210,7 +221,7 @@ void SettingsMenu::loadSettings() {
 
 SDL_Texture* SettingsMenu::renderText(const std::string& text) {
     SDL_Color color = {255, 255, 255, 255}; // Màu trắng
-    SDL_Surface* surface = TTF_RenderUTF8_Solid(font, text.c_str(), color);
+    SDL_Surface* surface = TTF_RenderUTF8_Blended(font, text.c_str(), color);
     if (!surface) {
         std::cerr << "Failed to render text: " << TTF_GetError() << std::endl;
         return nullptr;

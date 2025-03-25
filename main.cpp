@@ -20,7 +20,7 @@
 #include "Utils.h"
 
 SDL_Texture* renderText(const std::string &message, TTF_Font *font, SDL_Color color, SDL_Renderer *renderer) {
-    SDL_Surface* surface = TTF_RenderText_Solid(font, message.c_str(), color);
+    SDL_Surface* surface = TTF_RenderUTF8_Blended(font, message.c_str(), color);
     if (!surface) return nullptr;
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
@@ -178,6 +178,8 @@ int main(int argc, char* argv[]) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
+
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best");
     
     return 0;
 }

@@ -41,7 +41,7 @@ std::string promptForSaveName(SDL_Renderer* renderer, TTF_Font* font) {
         // 1) Vẽ prompt "Nhap ten file save:"
         {
             std::string prompt = "Nhap ten file save:";
-            SDL_Surface* promptSurface = TTF_RenderUTF8_Solid(font, prompt.c_str(), white);
+            SDL_Surface* promptSurface = TTF_RenderUTF8_Blended(font, prompt.c_str(), white);
             SDL_Texture* promptTexture = SDL_CreateTextureFromSurface(renderer, promptSurface);
             SDL_FreeSurface(promptSurface);
 
@@ -60,7 +60,7 @@ std::string promptForSaveName(SDL_Renderer* renderer, TTF_Font* font) {
             SDL_DestroyTexture(promptTexture);
 
             // 2) Vẽ dòng người dùng đã nhập (saveName)
-            SDL_Surface* inputSurface = TTF_RenderUTF8_Solid(font, saveName.c_str(), white);
+            SDL_Surface* inputSurface = TTF_RenderUTF8_Blended(font, saveName.c_str(), white);
             SDL_Texture* inputTexture = SDL_CreateTextureFromSurface(renderer, inputSurface);
             SDL_FreeSurface(inputSurface);
 

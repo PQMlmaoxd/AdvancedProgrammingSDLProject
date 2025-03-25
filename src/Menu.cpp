@@ -180,37 +180,76 @@ bool Menu::selectGameMode() {
     int selected = 0; // 0 = New Game, 1 = Load Game
     bool choosing = true;
 
+    // Mở font với cỡ 28 (đảm bảo file font tồn tại)
+    TTF_Font* font = TTF_OpenFont("resources/fonts/arial-unicode-ms.ttf", 28);
+    if (!font) {
+        std::cerr << "Failed to load font in selectGameMode: " << TTF_GetError() << std::endl;
+        return false;
+    }
+    SDL_Color textColor = { 255, 255, 255, 255 };
+
     while (choosing) {
         while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) return false;
+            if (e.type == SDL_QUIT) {
+                TTF_CloseFont(font);
+                return false;
+            }
             if (e.type == SDL_KEYDOWN) {
                 switch (e.key.keysym.sym) {
-                    case SDLK_LEFT:
-                    case SDLK_RIGHT:
-                        selected = 1 - selected;
-                        break;
-                    case SDLK_RETURN:
-                        return selected == 0;
+                case SDLK_LEFT:
+                case SDLK_RIGHT:
+                    selected = 1 - selected;
+                    break;
+                case SDLK_RETURN:
+                    TTF_CloseFont(font);
+                    return (selected == 0);
                 }
             }
         }
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        SDL_Texture* newGameText = renderText(selected == 0 ? "> New Game <" : "New Game", {255, 255, 255, 255});
-        SDL_Texture* loadGameText = renderText(selected == 1 ? "> Load Game <" : "Load Game", {255, 255, 255, 255});
+        // Xây dựng chuỗi hiển thị cho các lựa chọn
+        std::string newGameStr = (selected == 0 ? "> New Game <" : "New Game");
+        std::string loadGameStr = (selected == 1 ? "> Load Game <" : "Load Game");
 
-        SDL_Rect newGameRect = {300, 200, 200, 40};
-        SDL_Rect loadGameRect = {300, 300, 200, 40};
+        // Render New Game
+        SDL_Surface* newGameSurface = TTF_RenderUTF8_Blended(font, newGameStr.c_str(), textColor);
+        if (!newGameSurface) {
+            std::cerr << "Failed to render New Game surface: " << TTF_GetError() << std::endl;
+            continue;
+        }
+        SDL_Texture* newGameText = SDL_CreateTextureFromSurface(renderer, newGameSurface);
+        int newGameW, newGameH;
+        SDL_QueryTexture(newGameText, NULL, NULL, &newGameW, &newGameH);
+        SDL_Rect newGameRect = { 300, 200, newGameW, newGameH };
 
+        // Render Load Game
+        SDL_Surface* loadGameSurface = TTF_RenderUTF8_Blended(font, loadGameStr.c_str(), textColor);
+        if (!loadGameSurface) {
+            std::cerr << "Failed to render Load Game surface: " << TTF_GetError() << std::endl;
+            SDL_DestroyTexture(newGameText);
+            SDL_FreeSurface(newGameSurface);
+            continue;
+        }
+        SDL_Texture* loadGameText = SDL_CreateTextureFromSurface(renderer, loadGameSurface);
+        int loadGameW, loadGameH;
+        SDL_QueryTexture(loadGameText, NULL, NULL, &loadGameW, &loadGameH);
+        SDL_Rect loadGameRect = { 300, 300, loadGameW, loadGameH };
+
+        // Render cả hai lựa chọn
         SDL_RenderCopy(renderer, newGameText, NULL, &newGameRect);
         SDL_RenderCopy(renderer, loadGameText, NULL, &loadGameRect);
 
         SDL_DestroyTexture(newGameText);
         SDL_DestroyTexture(loadGameText);
+        SDL_FreeSurface(newGameSurface);
+        SDL_FreeSurface(loadGameSurface);
 
         SDL_RenderPresent(renderer);
+        SDL_Delay(16);
     }
+    TTF_CloseFont(font);
     return false;
 }
 
@@ -219,19 +258,31 @@ int Menu::selectSaveSlot() {
     int selectedSlot = 1;
     bool choosing = true;
 
+    // Mở font với cỡ 28
+    TTF_Font* font = TTF_OpenFont("resources/fonts/arial-unicode-ms.ttf", 28);
+    if (!font) {
+        std::cerr << "Failed to load font in selectSaveSlot: " << TTF_GetError() << std::endl;
+        return 1;
+    }
+    SDL_Color textColor = { 255, 255, 255, 255 };
+
     while (choosing) {
         while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) return 1;
+            if (e.type == SDL_QUIT) {
+                TTF_CloseFont(font);
+                return 1;
+            }
             if (e.type == SDL_KEYDOWN) {
                 switch (e.key.keysym.sym) {
-                    case SDLK_LEFT:
-                        if (selectedSlot > 1) selectedSlot--;
-                        break;
-                    case SDLK_RIGHT:
-                        if (selectedSlot < 3) selectedSlot++; // Giả sử có tối đa 3 slot
-                        break;
-                    case SDLK_RETURN:
-                        return selectedSlot;
+                case SDLK_LEFT:
+                    if (selectedSlot > 1) selectedSlot--;
+                    break;
+                case SDLK_RIGHT:
+                    if (selectedSlot < 3) selectedSlot++; // Giả sử có tối đa 3 slot
+                    break;
+                case SDLK_RETURN:
+                    TTF_CloseFont(font);
+                    return selectedSlot;
                 }
             }
         }
@@ -239,15 +290,31 @@ int Menu::selectSaveSlot() {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
+        // Tạo thông điệp hiển thị slot
         std::string slotText = "Save Slot: " + std::to_string(selectedSlot);
-        SDL_Texture* slotTexture = renderText(slotText, {255, 255, 255, 255});
-        SDL_Rect slotRect = {300, 250, 200, 40};
+        SDL_Surface* surface = TTF_RenderUTF8_Blended(font, slotText.c_str(), textColor);
+        if (!surface) {
+            std::cerr << "Failed to render save slot surface: " << TTF_GetError() << std::endl;
+            continue;
+        }
+        SDL_Texture* slotTexture = SDL_CreateTextureFromSurface(renderer, surface);
+        SDL_FreeSurface(surface);
+        if (!slotTexture) {
+            std::cerr << "Failed to create save slot texture: " << SDL_GetError() << std::endl;
+            continue;
+        }
+        int textW, textH;
+        SDL_QueryTexture(slotTexture, NULL, NULL, &textW, &textH);
+        // Căn giữa theo chiều ngang, vị trí y là 250
+        SDL_Rect slotRect = { (800 - textW) / 2, 250, textW, textH };
 
         SDL_RenderCopy(renderer, slotTexture, NULL, &slotRect);
         SDL_DestroyTexture(slotTexture);
 
         SDL_RenderPresent(renderer);
+        SDL_Delay(16);
     }
+    TTF_CloseFont(font);
     return 1;
 }
 
@@ -255,13 +322,34 @@ void Menu::renderSubMenu(const std::vector<std::string>& options, int selected) 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
+    TTF_Font* font = TTF_OpenFont("resources/fonts/arial-unicode-ms.ttf", 28);
+    if (!font) {
+        std::cerr << "Failed to load font in renderSubMenu: " << TTF_GetError() << std::endl;
+        return;
+    }
+    SDL_Color textColor = { 255, 255, 255, 255 };
+
     for (size_t i = 0; i < options.size(); i++) {
-        SDL_Texture* texture = renderText(i == selected ? "> " + options[i] + " <" : options[i], {255, 255, 255, 255});
-        SDL_Rect rect = {300, 200 + (int)i * 50, 200, 40};
+        std::string displayText = (i == selected) ? ("> " + options[i] + " <") : options[i];
+        SDL_Surface* surface = TTF_RenderUTF8_Blended(font, displayText.c_str(), textColor);
+        if (!surface) {
+            std::cerr << "Failed to render text surface: " << TTF_GetError() << std::endl;
+            continue;
+        }
+        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+        if (!texture) {
+            std::cerr << "Failed to create text texture: " << SDL_GetError() << std::endl;
+            SDL_FreeSurface(surface);
+            continue;
+        }
+        // Tùy chỉnh vị trí và kích thước dựa trên kích thước của surface
+        SDL_Rect rect = { 300, 200 + static_cast<int>(i) * 50, surface->w, surface->h };
         SDL_RenderCopy(renderer, texture, NULL, &rect);
         SDL_DestroyTexture(texture);
+        SDL_FreeSurface(surface);
     }
 
+    TTF_CloseFont(font);
     SDL_RenderPresent(renderer);
 }
 
@@ -310,9 +398,11 @@ void Menu::showGuide() {
 
         int yOffset = 100;
         for (const std::string& line : guideText) {
-            SDL_Texture* textTexture = renderText(line, {255, 255, 255, 255});
+            SDL_Surface* surface = TTF_RenderUTF8_Blended(font, line.c_str(), { 255, 255, 255, 255 });
+            SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, surface);
             if (textTexture) {
-                SDL_Rect textRect = {100, yOffset, 600, 30};
+                SDL_Rect textRect = {100, yOffset, surface->w, surface->h};
+                SDL_FreeSurface(surface);
                 SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
                 SDL_DestroyTexture(textTexture);
                 yOffset += 40;
@@ -333,49 +423,74 @@ bool Menu::confirmExit() {
     bool choosing = true;
     int selected = 0; // 0 = Không, 1 = Đúng
 
+    // Giả sử font đã được load trước đó (hoặc bạn có thể load lại tại đây)
+    TTF_Font* font = TTF_OpenFont("resources/fonts/arial-unicode-ms.ttf", 28);
+    if (!font) {
+        std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
+        return false;
+    }
+
     while (choosing) {
         while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) return true;
+            if (e.type == SDL_QUIT) {
+                TTF_CloseFont(font);
+                return true;
+            }
             if (e.type == SDL_KEYDOWN) {
                 switch (e.key.keysym.sym) {
-                    case SDLK_LEFT:
-                    case SDLK_RIGHT:
-                        selected = 1 - selected;
-                        break;
-                    case SDLK_RETURN:
-                        return selected == 1;
-                    case SDLK_ESCAPE:
-                        return false;
+                case SDLK_LEFT:
+                case SDLK_RIGHT:
+                    selected = 1 - selected;
+                    break;
+                case SDLK_RETURN:
+                    TTF_CloseFont(font);
+                    return selected == 1;
+                case SDLK_ESCAPE:
+                    TTF_CloseFont(font);
+                    return false;
                 }
             }
         }
-    
+
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
-    
-        SDL_Texture* message = renderText("Bạn thực sự muốn thoát game?", {255, 255, 255, 255});
-        SDL_Rect messageRect = {200, 200, 400, 50};
-        SDL_RenderCopy(renderer, message, NULL, &messageRect);
-        SDL_DestroyTexture(message);
-    
-        SDL_Texture* yesText = renderText(selected == 1 ? "> Đúng <" : "Đúng", {255, 255, 255, 255});
-        SDL_Texture* noText = renderText(selected == 0 ? "> Không <" : "Không", {255, 255, 255, 255});
-        SDL_Rect yesRect = {250, 300, 100, 40};
-        SDL_Rect noRect = {450, 300, 100, 40};
-        SDL_RenderCopy(renderer, yesText, NULL, &yesRect);
-        SDL_RenderCopy(renderer, noText, NULL, &noRect);
-        SDL_DestroyTexture(yesText);
-        SDL_DestroyTexture(noText);
-    
+
+        // Render thông điệp hỏi người dùng
+        SDL_Surface* messageSurface = TTF_RenderUTF8_Blended(font, "Bạn thực sự muốn thoát game?", { 255, 255, 255, 255 });
+        SDL_Texture* messageTexture = SDL_CreateTextureFromSurface(renderer, messageSurface);
+        SDL_Rect messageRect = { 200, 200, messageSurface->w, messageSurface->h };
+        SDL_RenderCopy(renderer, messageTexture, NULL, &messageRect);
+        SDL_DestroyTexture(messageTexture);
+        SDL_FreeSurface(messageSurface);
+
+        // Render lựa chọn "Có"
+        std::string yesStr = (selected == 1 ? "> Đúng <" : "Đúng");
+        SDL_Surface* yesSurface = TTF_RenderUTF8_Blended(font, yesStr.c_str(), { 255, 255, 255, 255 });
+        SDL_Texture* yesTexture = SDL_CreateTextureFromSurface(renderer, yesSurface);
+        SDL_Rect yesRect = { 250, 300, yesSurface->w, yesSurface->h };
+        SDL_RenderCopy(renderer, yesTexture, NULL, &yesRect);
+        SDL_DestroyTexture(yesTexture);
+        SDL_FreeSurface(yesSurface);
+
+        // Render lựa chọn "Không"
+        std::string noStr = (selected == 0 ? "> Không <" : "Không");
+        SDL_Surface* noSurface = TTF_RenderUTF8_Blended(font, noStr.c_str(), { 255, 255, 255, 255 });
+        SDL_Texture* noTexture = SDL_CreateTextureFromSurface(renderer, noSurface);
+        SDL_Rect noRect = { 450, 300, noSurface->w, noSurface->h };
+        SDL_RenderCopy(renderer, noTexture, NULL, &noRect);
+        SDL_DestroyTexture(noTexture);
+        SDL_FreeSurface(noSurface);
+
         SDL_RenderPresent(renderer);
         SDL_Delay(16);
     }
 
+    TTF_CloseFont(font);
     return false;
 }
 
 SDL_Texture* Menu::renderText(const std::string& text, SDL_Color color) {
-    SDL_Surface* surface = TTF_RenderUTF8_Solid(font, text.c_str(), color);
+    SDL_Surface* surface = TTF_RenderUTF8_Blended(font, text.c_str(), color);
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
     return texture;
@@ -387,7 +502,7 @@ void Menu::renderMenu() {
 
     // Vẽ ảnh nền nếu có
     if (backgroundTexture) {
-        SDL_Rect destRect = {0, 0, 800, 600};
+        SDL_Rect destRect = { 0, 0, 800, 600 };
         SDL_RenderCopy(renderer, backgroundTexture, NULL, &destRect);
     }
 
@@ -397,24 +512,48 @@ void Menu::renderMenu() {
         blinkTimer = 0;
         blinkState = !blinkState;
     }
-    
-    SDL_Rect highlightRect;
+
+    // Mở font (bạn có thể thay đổi font nếu cần)
+    TTF_Font* font = TTF_OpenFont("resources/fonts/arial-unicode-ms.ttf", 28);
+    if (!font) {
+        std::cerr << "Failed to load font in renderMenu: " << TTF_GetError() << std::endl;
+        return;
+    }
+
+    SDL_Color textColor = { 255, 255, 255, 255 };
+    SDL_Rect highlightRect = { 0, 0, 0, 0 }; // Khởi tạo highlightRect
+
     for (size_t i = 0; i < options.size(); i++) {
-        SDL_Color color = (i == selectedOption) ? SDL_Color{255, 255, 0, 255} : SDL_Color{255, 255, 255, 255};
-        SDL_Texture* texture = renderText(options[i], {255, 255, 255, 255});
+        // Sử dụng TTF_RenderUTF8_Blended để tạo surface với hiệu ứng mượt mà
+        std::string optionStr = options[i];
+        SDL_Surface* surface = TTF_RenderUTF8_Blended(font, optionStr.c_str(), textColor);
+        if (!surface) {
+            std::cerr << "Failed to render text surface: " << TTF_GetError() << std::endl;
+            continue;
+        }
+        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+        if (!texture) {
+            std::cerr << "Failed to create text texture: " << SDL_GetError() << std::endl;
+            SDL_FreeSurface(surface);
+            continue;
+        }
         int w, h;
         SDL_QueryTexture(texture, NULL, NULL, &w, &h);
-        SDL_Rect rect = { (800 - w) / 2, 200 + (int)i * 60, w, h };
+        SDL_Rect rect = { (800 - w) / 2, 200 + static_cast<int>(i) * 60, w, h };
         SDL_RenderCopy(renderer, texture, NULL, &rect);
-        SDL_DestroyTexture(texture);
         if (i == selectedOption) {
             highlightRect = { rect.x - 10, rect.y - 5, rect.w + 20, rect.h + 10 };
         }
+        SDL_DestroyTexture(texture);
+        SDL_FreeSurface(surface);
     }
+
     if (blinkState) {
         SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
         SDL_RenderDrawRect(renderer, &highlightRect);
     }
+
+    TTF_CloseFont(font);
     SDL_RenderPresent(renderer);
 }
 
@@ -425,14 +564,34 @@ std::string Menu::getChosenSaveFile() {
 void Menu::showConfirmationScreen(const std::string& message) {
     SDL_Event e;
     bool done = false;
+
+    TTF_Font* font = TTF_OpenFont("resources/fonts/arial-unicode-ms.ttf", 28);
+    if (!font) {
+        std::cerr << "Failed to load font in showConfirmationScreen: " << TTF_GetError() << std::endl;
+        return;
+    }
+
+    SDL_Color color = { 255, 255, 255, 255 };
+
     while (!done) {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        SDL_Texture* msgTexture = renderText(message, {255, 255, 255, 255});
-        SDL_Rect msgRect = {50, 250, 700, 50};
-        SDL_RenderCopy(renderer, msgTexture, NULL, &msgRect);
-        SDL_DestroyTexture(msgTexture);
+        // Tạo surface bằng TTF_RenderUTF8_Blended
+        SDL_Surface* surface = TTF_RenderUTF8_Blended(font, message.c_str(), color);
+        if (!surface) {
+            std::cerr << "Failed to render text surface: " << TTF_GetError() << std::endl;
+        }
+        else {
+            SDL_Texture* msgTexture = SDL_CreateTextureFromSurface(renderer, surface);
+            SDL_FreeSurface(surface);
+            if (msgTexture) {
+                // Sử dụng kích thước từ texture; ở đây ta dùng kích thước cố định nếu cần
+                SDL_Rect msgRect = { 50, 250, 700, 50 };
+                SDL_RenderCopy(renderer, msgTexture, NULL, &msgRect);
+                SDL_DestroyTexture(msgTexture);
+            }
+        }
 
         SDL_RenderPresent(renderer);
 
@@ -444,6 +603,8 @@ void Menu::showConfirmationScreen(const std::string& message) {
         }
         SDL_Delay(16);
     }
+
+    TTF_CloseFont(font);
 }
 
 int Menu::handleNewGame() {
@@ -472,25 +633,35 @@ bool Menu::confirmSaveFile(const std::string& fileName) {
     bool choosing = true;
     int selected = 0; // 0 = Không, 1 = Có
 
+    // Mở font để render text (cỡ 28)
+    TTF_Font* font = TTF_OpenFont("resources/fonts/arial-unicode-ms.ttf", 28);
+    if (!font) {
+        std::cerr << "Failed to load font in confirmSaveFile: " << TTF_GetError() << std::endl;
+        return false;
+    }
+
+    SDL_Color textColor = { 255, 255, 255, 255 };
+
     while (choosing) {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
-                // Người chơi tắt game
-                return false; 
+                TTF_CloseFont(font);
+                return false;
             }
             if (e.type == SDL_KEYDOWN) {
                 switch (e.key.keysym.sym) {
-                    case SDLK_LEFT:
-                    case SDLK_RIGHT:
-                    case SDLK_UP:
-                    case SDLK_DOWN:
-                        selected = 1 - selected; // Chuyển giữa Có (1) và Không (0)
-                        break;
-                    case SDLK_RETURN:
-                        // Nhấn Enter => xác nhận lựa chọn
-                        return (selected == 1); // Nếu =1 => Có => true, ngược lại false
-                    case SDLK_ESCAPE:
-                        return false; // Thoát => coi như Không
+                case SDLK_LEFT:
+                case SDLK_RIGHT:
+                case SDLK_UP:
+                case SDLK_DOWN:
+                    selected = 1 - selected; // Chuyển giữa Có (1) và Không (0)
+                    break;
+                case SDLK_RETURN:
+                    TTF_CloseFont(font);
+                    return (selected == 1); // Nếu =1 => Có, ngược lại false
+                case SDLK_ESCAPE:
+                    TTF_CloseFont(font);
+                    return false;
                 }
             }
         }
@@ -499,40 +670,57 @@ bool Menu::confirmSaveFile(const std::string& fileName) {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        // Ví dụ: hiển thị nội dung: "Bạn đã xác nhận FileSave của bạn tên: <fileName>?"
+        // Hiển thị thông điệp: "FileSave: <fileName> \n Co xac nhan khong?"
         std::string message = "FileSave: " + fileName + "\nCo xac nhan khong?";
-        // Hoặc tách ra 2 dòng, tuỳ ý
+        SDL_Surface* msgSurface = TTF_RenderUTF8_Blended(font, message.c_str(), textColor);
+        if (!msgSurface) {
+            std::cerr << "Failed to render message surface: " << TTF_GetError() << std::endl;
+        }
+        else {
+            SDL_Texture* msgTexture = SDL_CreateTextureFromSurface(renderer, msgSurface);
+            SDL_FreeSurface(msgSurface);
+            if (msgTexture) {
+                int w, h;
+                SDL_QueryTexture(msgTexture, NULL, NULL, &w, &h);
+                SDL_Rect msgRect = { (800 - w) / 2, 200, w, h };
+                SDL_RenderCopy(renderer, msgTexture, NULL, &msgRect);
+                SDL_DestroyTexture(msgTexture);
+            }
+        }
 
-        SDL_Texture* msgTexture = renderText(message, {255, 255, 255, 255});
-        // Lấy kích thước text
-        int w, h;
-        SDL_QueryTexture(msgTexture, NULL, NULL, &w, &h);
-        SDL_Rect msgRect = { (800 - w)/2, 200, w, h };
-        SDL_RenderCopy(renderer, msgTexture, NULL, &msgRect);
-        SDL_DestroyTexture(msgTexture);
-
-        // Hiển thị 2 lựa chọn: Có / Không
+        // Hiển thị lựa chọn "Có" và "Không"
         std::string yesOption = (selected == 1) ? "> Co <" : "Co";
-        std::string noOption  = (selected == 0) ? "> Khong <" : "Khong";
+        std::string noOption = (selected == 0) ? "> Khong <" : "Khong";
 
-        // Vẽ "Có"
-        SDL_Texture* yesTexture = renderText(yesOption, {255, 255, 255, 255});
-        SDL_QueryTexture(yesTexture, NULL, NULL, &w, &h);
-        SDL_Rect yesRect = {200, 300, w, h}; 
-        SDL_RenderCopy(renderer, yesTexture, NULL, &yesRect);
-        SDL_DestroyTexture(yesTexture);
+        // Render "Có"
+        SDL_Surface* yesSurface = TTF_RenderUTF8_Blended(font, yesOption.c_str(), textColor);
+        if (yesSurface) {
+            SDL_Texture* yesTexture = SDL_CreateTextureFromSurface(renderer, yesSurface);
+            int w, h;
+            SDL_QueryTexture(yesTexture, NULL, NULL, &w, &h);
+            SDL_Rect yesRect = { 200, 300, w, h };
+            SDL_RenderCopy(renderer, yesTexture, NULL, &yesRect);
+            SDL_DestroyTexture(yesTexture);
+            SDL_FreeSurface(yesSurface);
+        }
 
-        // Vẽ "Không"
-        SDL_Texture* noTexture = renderText(noOption, {255, 255, 255, 255});
-        SDL_QueryTexture(noTexture, NULL, NULL, &w, &h);
-        SDL_Rect noRect = {400, 300, w, h}; 
-        SDL_RenderCopy(renderer, noTexture, NULL, &noRect);
-        SDL_DestroyTexture(noTexture);
+        // Render "Không"
+        SDL_Surface* noSurface = TTF_RenderUTF8_Blended(font, noOption.c_str(), textColor);
+        if (noSurface) {
+            SDL_Texture* noTexture = SDL_CreateTextureFromSurface(renderer, noSurface);
+            int w, h;
+            SDL_QueryTexture(noTexture, NULL, NULL, &w, &h);
+            SDL_Rect noRect = { 400, 300, w, h };
+            SDL_RenderCopy(renderer, noTexture, NULL, &noRect);
+            SDL_DestroyTexture(noTexture);
+            SDL_FreeSurface(noSurface);
+        }
 
         SDL_RenderPresent(renderer);
         SDL_Delay(16);
     }
 
+    TTF_CloseFont(font);
     return false;
 }
 

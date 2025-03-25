@@ -62,7 +62,7 @@ PauseMenu::~PauseMenu() {
 }
 
 SDL_Texture* PauseMenu::renderText(const std::string& text) {
-    SDL_Surface* surface = TTF_RenderUTF8_Solid(font, text.c_str(), textColor);
+    SDL_Surface* surface = TTF_RenderUTF8_Blended(font, text.c_str(), textColor);
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
     return texture;
