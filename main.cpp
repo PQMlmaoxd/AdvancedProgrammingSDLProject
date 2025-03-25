@@ -18,6 +18,7 @@
 #include "SettingsMenu.h"
 #include "Player.h"
 #include "Utils.h"
+#include "TwoPlayerMode.h"
 
 SDL_Texture* renderText(const std::string &message, TTF_Font *font, SDL_Color color, SDL_Renderer *renderer) {
     SDL_Surface* surface = TTF_RenderUTF8_Blended(font, message.c_str(), color);
@@ -144,8 +145,31 @@ int main(int argc, char* argv[]) {
     while (true) {
         Menu menu(renderer);
         int gameMode = menu.run();
-        if (gameMode == -1) break; // Thoát game
 
+        // Nếu người chơi chọn "Thoát" trong Menu => gameMode == -1
+        if (gameMode == -1) {
+            break; // Thoát hẳn chương trình
+        }
+
+        // ================================
+        // 1) Kiểm tra 2 PLAYER MODE
+        // ================================
+        if (gameMode == 2) {
+            // 2 người chơi
+            TwoPlayerMode twoPlayer(renderer);
+            int ret = twoPlayer.run(); // Giả sử twoPlayer.run() trả về -1 nếu người chơi muốn thoát game
+
+            if (ret == -1) {
+                // Người chơi thoát trong chế độ 2P => thoát hẳn game
+                break;
+            }
+            // Nếu ret != -1 => quay lại vòng lặp => hiển thị Menu tiếp
+            continue;
+        }
+
+        // ================================
+        // 2) SINGLEPLAYER (mặc định)
+        // ================================
         createSaveDirectory();
 
         std::string mazeFile, playerFile;
@@ -156,21 +180,30 @@ int main(int argc, char* argv[]) {
             mazeFile = chosenFile;
             playerFile = chosenFile;
             size_t pos = playerFile.find("_maze.txt");
-            if (pos != std::string::npos)
+            if (pos != std::string::npos) {
                 playerFile.replace(pos, 9, "_player.txt");
-            else
+            }
+            else {
                 playerFile = "Save/default_player.txt";
-            isNewGame = (gameMode == 10);
-        } else {
+            }
+            isNewGame = (gameMode == 10); // Ví dụ: gameMode == 10 là "New Game"
+        }
+        else {
             isNewGame = menu.selectGameMode();
             int saveSlot = menu.selectSaveSlot();
             mazeFile = "Save/Save" + std::to_string(saveSlot) + "_maze.txt";
             playerFile = "Save/Save" + std::to_string(saveSlot) + "_player.txt";
         }
 
+        // Gọi hàm chơi game Singleplayer
         int gameResult = startGame(renderer, mazeFile, playerFile, isNewGame);
         Menu::chosenSaveFile = "";
-        if (gameResult == -1) break; // Nếu thoát game
+
+        // Nếu người chơi nhấn ESC (gameResult == -1), thoát hẳn
+        if (gameResult == -1) {
+            break;
+        }
+        // Nếu gameResult == 1,... => quay lại menu => while(true) lặp lại
     }
 
     TTF_CloseFont(font);

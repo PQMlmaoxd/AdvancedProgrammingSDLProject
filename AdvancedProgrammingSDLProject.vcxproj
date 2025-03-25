@@ -25,6 +25,7 @@
     <ClInclude Include="include\PauseMenu.h" />
     <ClInclude Include="include\Player.h" />
     <ClInclude Include="include\SettingsMenu.h" />
+    <ClInclude Include="include\TwoPlayerMode.h" />
     <ClInclude Include="include\Utils.h" />
   </ItemGroup>
   <ItemGroup>
@@ -35,6 +36,7 @@
     <ClCompile Include="src\PauseMenu.cpp" />
     <ClCompile Include="src\Player.cpp" />
     <ClCompile Include="src\SettingsMenu.cpp" />
+    <ClCompile Include="src\TwoPlayerMode.cpp" />
     <ClCompile Include="src\Utils.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

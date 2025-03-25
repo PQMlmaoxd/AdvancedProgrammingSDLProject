@@ -123,57 +123,80 @@ int Menu::run() {
     bool running = true;
     SDL_Event e;
     playMusic();
-    // Tạo một đối tượng Maze (nếu cần cho Load Game, không dùng trong New Game)
-    Maze loadedMaze;  
 
+    // Maze loadedMaze; 
+    // (Nếu bạn không dùng loadedMaze trong Singleplayer thì có thể xóa dòng này)
 
     while (running) {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) return -1;
+
             if (e.type == SDL_KEYDOWN) {
-                if (e.key.keysym.sym == SDLK_UP) 
+                if (e.key.keysym.sym == SDLK_UP) {
                     selectedOption = (selectedOption - 1 + options.size()) % options.size();
-                if (e.key.keysym.sym == SDLK_DOWN) 
+                }
+                else if (e.key.keysym.sym == SDLK_DOWN) {
                     selectedOption = (selectedOption + 1) % options.size();
-                if (e.key.keysym.sym == SDLK_RETURN) {
-                    if (selectedOption == 0 || selectedOption == 1) {
-                        int gameMode = selectedOption; 
+                }
+                else if (e.key.keysym.sym == SDLK_RETURN) {
+                    // ======= SINGLEPLAYER =======
+                    if (selectedOption == 0) {
+                        // Hỏi New Game / Load Game
                         int choice = chooseNewOrLoad();
                         if (choice == 0) {  // New Game
                             int ret = handleNewGame();
                             if (ret != -1) {
                                 switchToGameMusic();
-                                return gameMode + ret;
+                                // Giá trị trả về để main biết vào Singleplayer
+                                // ret có thể là 10 (bạn định nghĩa ở handleNewGame)
+                                return ret;
                             }
                         }
-                        if (choice == 1) {  // Load Game
+                        else if (choice == 1) {  // Load Game
                             int ret = handleLoadGame();
                             if (ret == 20) {
                                 switchToGameMusic();
-                                return 20;  // Vào game ngay lập tức
+                                // 20: Vào game Singleplayer ngay
+                                return 20;
                             }
                         }
                     }
-                     else if (selectedOption == 2) {
+                    // ======= 2 PLAYERS =======
+                    else if (selectedOption == 1) {
+                        // Bỏ qua chooseNewOrLoad(), luôn tạo map mới
+                        switchToGameMusic();
+                        // Trả về 2 (hoặc 30, 40...) để main biết là 2 Player
+                        return 2;
+                    }
+                    // ======= GUIDE =======
+                    else if (selectedOption == 2) {
                         showGuide();
-                    } else if (selectedOption == 3) {
+                    }
+                    // ======= SETTINGS =======
+                    else if (selectedOption == 3) {
                         SettingsMenu settings(renderer);
                         settings.run();
                         loadSettings();
-                    } else if (selectedOption == 4) {
+                    }
+                    // ======= THOÁT =======
+                    else if (selectedOption == 4) {
                         if (confirmExit()) return -1;
                     }
                 }
             }
         }
+
+        // Nếu nhạc bị tắt, phát lại
         if (!Mix_PlayingMusic()) {
             playMusic();
         }
+
         renderMenu();
         SDL_Delay(16);
     }
     return -1;
 }
+
 
 bool Menu::selectGameMode() {
     SDL_Event e;

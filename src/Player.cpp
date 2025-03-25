@@ -356,5 +356,19 @@ Uint32 Player::getPlayTime() const {
     return playTime;
 }
 
+SDL_Rect Player::getRect() const {
+    return rect;
+}
+
+void Player::setKeybind(const std::string& action, SDL_Keycode keycode) {
+    keybinds[action] = keycode;
+}
+
+void Player::updateNoKey(Maze& maze, SDL_Renderer* renderer)
+{
+    Uint32 currentTime = SDL_GetTicks();
+    setPlayTime(currentTime - startTime);
+}
+
 
 

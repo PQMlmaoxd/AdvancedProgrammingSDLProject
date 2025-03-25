@@ -34,6 +34,9 @@ public:
     void setPlayTime(Uint32 time);
     Uint32 getPlayTime() const;
     void setStartTime(Uint32 time) { startTime = time; }
+    SDL_Rect getRect() const;
+    void setKeybind(const std::string& action, SDL_Keycode keycode);
+    void updateNoKey(Maze& maze, SDL_Renderer* renderer);
 
 private:
     SDL_Rect rect;
