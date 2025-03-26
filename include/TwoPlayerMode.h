@@ -32,13 +32,6 @@ private:
 
     // Kiểm tra thắng cuộc
     void checkWinCondition();
-
-    // Hàm hiển thị màn hình chiến thắng
-    void showWinScreen(const std::string& winnerName);
-
-    // Xác định xem cửa đã mở chưa (dựa vào Maze)
-    // Maze đã có sẵn cờ doorLocked, keyCollected,... 
-    // nên ta có thể gọi trực tiếp qua maze.
-
+    int returnValue;
     Uint32 startTime2P;
 };

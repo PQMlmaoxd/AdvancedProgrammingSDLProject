@@ -37,19 +37,29 @@ bool PauseMenu::confirmconfirmSaveGame() {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        SDL_Texture* message = renderText("Bạn có muốn lưu game không?");
-        SDL_Rect messageRect = { 200, 200, 400, 50 };
-        SDL_RenderCopy(renderer, message, NULL, &messageRect);
-        SDL_DestroyTexture(message);
+        // Render câu hỏi xác nhận lưu game
+        SDL_Surface* messageSurface = TTF_RenderUTF8_Blended(font, "Bạn có muốn lưu game không?", { 255, 255, 255, 255 });
+        SDL_Texture* messageTexture = SDL_CreateTextureFromSurface(renderer, messageSurface);
+        SDL_Rect messageRect = { (800 - messageSurface->w) / 2, 200, messageSurface->w, messageSurface->h };
+        SDL_FreeSurface(messageSurface);
+        SDL_RenderCopy(renderer, messageTexture, NULL, &messageRect);
+        SDL_DestroyTexture(messageTexture);
 
-        SDL_Texture* yesText = renderText(selected == 1 ? "> Có <" : "Có");
-        SDL_Texture* noText = renderText(selected == 0 ? "> Không <" : "Không");
-        SDL_Rect yesRect = { 250, 300, 100, 40 };
-        SDL_Rect noRect = { 450, 300, 100, 40 };
-        SDL_RenderCopy(renderer, yesText, NULL, &yesRect);
-        SDL_RenderCopy(renderer, noText, NULL, &noRect);
-        SDL_DestroyTexture(yesText);
-        SDL_DestroyTexture(noText);
+        // Render lựa chọn "Có"
+        SDL_Surface* yesSurface = TTF_RenderUTF8_Blended(font, (selected == 1 ? "> Có <" : "Có"), { 255, 255, 255, 255 });
+        SDL_Texture* yesTexture = SDL_CreateTextureFromSurface(renderer, yesSurface);
+        SDL_Rect yesRect = { 250, 300, yesSurface->w, yesSurface->h };
+        SDL_FreeSurface(yesSurface);
+        SDL_RenderCopy(renderer, yesTexture, NULL, &yesRect);
+        SDL_DestroyTexture(yesTexture);
+
+        // Render lựa chọn "Không"
+        SDL_Surface* noSurface = TTF_RenderUTF8_Blended(font, (selected == 0 ? "> Không <" : "Không"), { 255, 255, 255, 255 });
+        SDL_Texture* noTexture = SDL_CreateTextureFromSurface(renderer, noSurface);
+        SDL_Rect noRect = { 450, 300, noSurface->w, noSurface->h };
+        SDL_FreeSurface(noSurface);
+        SDL_RenderCopy(renderer, noTexture, NULL, &noRect);
+        SDL_DestroyTexture(noTexture);
 
         SDL_RenderPresent(renderer);
         SDL_Delay(16);
@@ -59,13 +69,6 @@ bool PauseMenu::confirmconfirmSaveGame() {
 
 PauseMenu::~PauseMenu() {
     TTF_CloseFont(font);
-}
-
-SDL_Texture* PauseMenu::renderText(const std::string& text) {
-    SDL_Surface* surface = TTF_RenderUTF8_Blended(font, text.c_str(), textColor);
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    return texture;
 }
 
 bool PauseMenu::confirmExit() {
@@ -93,19 +96,29 @@ bool PauseMenu::confirmExit() {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        SDL_Texture* message = renderText("Bạn thực sự muốn thoát game?");
-        SDL_Rect messageRect = {200, 200, 400, 50};
-        SDL_RenderCopy(renderer, message, NULL, &messageRect);
-        SDL_DestroyTexture(message);
+        // Render câu hỏi xác nhận thoát game
+        SDL_Surface* messageSurface = TTF_RenderUTF8_Blended(font, "Bạn thực sự muốn thoát game?", { 255, 255, 255, 255 });
+        SDL_Texture* messageTexture = SDL_CreateTextureFromSurface(renderer, messageSurface);
+        SDL_Rect messageRect = { (800 - messageSurface->w) / 2, 200, messageSurface->w, messageSurface->h };
+        SDL_FreeSurface(messageSurface);
+        SDL_RenderCopy(renderer, messageTexture, NULL, &messageRect);
+        SDL_DestroyTexture(messageTexture);
 
-        SDL_Texture* yesText = renderText(selected == 1 ? "> Đúng <" : "Đúng");
-        SDL_Texture* noText  = renderText(selected == 0 ? "> Không <" : "Không");
-        SDL_Rect yesRect = {250, 300, 100, 40};
-        SDL_Rect noRect  = {450, 300, 100, 40};
-        SDL_RenderCopy(renderer, yesText, NULL, &yesRect);
-        SDL_RenderCopy(renderer, noText, NULL, &noRect);
-        SDL_DestroyTexture(yesText);
-        SDL_DestroyTexture(noText);
+        // Render lựa chọn "Đúng"
+        SDL_Surface* yesSurface = TTF_RenderUTF8_Blended(font, (selected == 1 ? "> Đúng <" : "Đúng"), { 255, 255, 255, 255 });
+        SDL_Texture* yesTexture = SDL_CreateTextureFromSurface(renderer, yesSurface);
+        SDL_Rect yesRect = { 250, 300, yesSurface->w, yesSurface->h };
+        SDL_FreeSurface(yesSurface);
+        SDL_RenderCopy(renderer, yesTexture, NULL, &yesRect);
+        SDL_DestroyTexture(yesTexture);
+
+        // Render lựa chọn "Không"
+        SDL_Surface* noSurface = TTF_RenderUTF8_Blended(font, (selected == 0 ? "> Không <" : "Không"), { 255, 255, 255, 255 });
+        SDL_Texture* noTexture = SDL_CreateTextureFromSurface(renderer, noSurface);
+        SDL_Rect noRect = { 450, 300, noSurface->w, noSurface->h };
+        SDL_FreeSurface(noSurface);
+        SDL_RenderCopy(renderer, noTexture, NULL, &noRect);
+        SDL_DestroyTexture(noTexture);
 
         SDL_RenderPresent(renderer);
         SDL_Delay(16);
@@ -118,17 +131,26 @@ void PauseMenu::renderMenu() {
     SDL_RenderClear(renderer);
 
     for (size_t i = 0; i < options.size(); i++) {
-        SDL_Texture* texture = renderText(options[i]);
-        int w, h;
-        SDL_QueryTexture(texture, NULL, NULL, &w, &h);
-        SDL_Rect rect = {300, 200 + (int)i * 50, w, h};
+        // Tạo surface từ text
+        SDL_Surface* surface = TTF_RenderUTF8_Blended(font, options[i].c_str(), { 255, 255, 255, 255 });
+        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+
+        // Lấy kích thước chữ để căn giữa
+        int w = surface->w;
+        int h = surface->h;
+        SDL_Rect rect = { (800 - w) / 2, 200 + (int)i * 50, w, h }; // Căn giữa màn hình
+
+        SDL_FreeSurface(surface); // Giải phóng surface ngay sau khi tạo texture
+
         if (i == selectedOption) {
             SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // Viền vàng cho mục được chọn
             SDL_RenderDrawRect(renderer, &rect);
         }
+
         SDL_RenderCopy(renderer, texture, NULL, &rect);
         SDL_DestroyTexture(texture);
     }
+
     SDL_RenderPresent(renderer);
 }
 
@@ -185,12 +207,22 @@ int PauseMenu::run() {
 void PauseMenu::showConfirmationScreen(const std::string& message) {
     SDL_Event e;
     bool done = false;
+
     while (!done) {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        SDL_Texture* msgTexture = renderText(message);
-        SDL_Rect msgRect = {50, 250, 700, 50};
+        // Tạo surface từ text
+        SDL_Surface* surface = TTF_RenderUTF8_Blended(font, message.c_str(), { 255, 255, 255, 255 });
+        SDL_Texture* msgTexture = SDL_CreateTextureFromSurface(renderer, surface);
+
+        // Lấy kích thước chữ để căn giữa
+        int w = surface->w;
+        int h = surface->h;
+        SDL_Rect msgRect = { (800 - w) / 2, 250, w, h }; // Căn giữa theo chiều ngang
+
+        SDL_FreeSurface(surface); // Giải phóng surface ngay sau khi tạo texture
+
         SDL_RenderCopy(renderer, msgTexture, NULL, &msgRect);
         SDL_DestroyTexture(msgTexture);
 

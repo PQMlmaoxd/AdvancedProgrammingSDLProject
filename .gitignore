@@ -4,9 +4,6 @@
 
 *.dll
 *.exe
-*.pdb
-*.lib
-*.a
 *.o
 
 build/

@@ -16,7 +16,6 @@
 #include "Menu.h"
 #include "PauseMenu.h"
 #include "SettingsMenu.h"
-#include "Player.h"
 #include "Utils.h"
 #include "TwoPlayerMode.h"
 
@@ -155,15 +154,14 @@ int main(int argc, char* argv[]) {
         // 1) Kiểm tra 2 PLAYER MODE
         // ================================
         if (gameMode == 2) {
-            // 2 người chơi
             TwoPlayerMode twoPlayer(renderer);
-            int ret = twoPlayer.run(); // Giả sử twoPlayer.run() trả về -1 nếu người chơi muốn thoát game
-
+            int ret = twoPlayer.run();
             if (ret == -1) {
-                // Người chơi thoát trong chế độ 2P => thoát hẳn game
                 break;
             }
-            // Nếu ret != -1 => quay lại vòng lặp => hiển thị Menu tiếp
+            if (ret == 2) {
+                continue;
+            }
             continue;
         }
 

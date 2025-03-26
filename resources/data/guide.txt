@@ -1,6 +1,8 @@
 Hướng dẫn chơi game:
-- Dùng phím MŨI TÊN TRÁI/PHẢI để di chuyển.
-- Nhấn UP để nhảy.
-- Trong Story Mode, vượt qua các chướng ngại vật.
-- Trong Endless Mode, cố gắng sống sót lâu nhất.
-- Nhấn ESC để thoát game.
+Chế độ 1 người chơi:
++ Có thể điều chỉnh keybind trong settings.
++ Mục tiêu là tìm chìa khóa và đích trong thời gian ngắn nhất
++ Chìa khóa có thể không xuất hiện ngay từ đầu mà xuất hiện sau 1 khoảng thời gian nhất định(Có nút Pause bằng ESC và lưu tiến trình).
+Chế độ 2 người chơi:
++ P1 di chuyển bang wasd còn P2 di chuyển bang phím arrow
++ Chỉ người thứ nhất có ánh sáng và chỉ có người thứ hai nhận được key và về đích. Nhiệm vụ là phối hợp giữa 2 người chơi và về đích. 

@@ -38,6 +38,9 @@ public:
     void setKeybind(const std::string& action, SDL_Keycode keycode);
     void updateNoKey(Maze& maze, SDL_Renderer* renderer);
 
+    int showWinScreen1(SDL_Renderer* renderer);
+    void update1(Maze& maze, SDL_Renderer* renderer);
+
 private:
     SDL_Rect rect;
     int speed;

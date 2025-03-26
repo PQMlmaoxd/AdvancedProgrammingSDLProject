@@ -8,7 +8,6 @@
 
 
 
-// Định nghĩa biến tĩnh
 std::string Menu::chosenSaveFile = "";
 
 void Menu::loadSettings() {
@@ -123,9 +122,6 @@ int Menu::run() {
     bool running = true;
     SDL_Event e;
     playMusic();
-
-    // Maze loadedMaze; 
-    // (Nếu bạn không dùng loadedMaze trong Singleplayer thì có thể xóa dòng này)
 
     while (running) {
         while (SDL_PollEvent(&e)) {
@@ -399,11 +395,31 @@ void Menu::showGuide() {
     }
 
     std::string line;
-    std::vector<std::string> guideText;
+    std::vector<std::string> guideLines;
     while (std::getline(file, line)) {
-        guideText.push_back(line);
+        guideLines.push_back(line);
     }
     file.close();
+
+    // Sử dụng TTF_RenderUTF8_Blended_Wrapped để render từng dòng với độ rộng wrap là 600px.
+    int wrapWidth = 600;
+    std::vector<SDL_Surface*> surfaces;
+    int totalHeight = 0;
+    // Giả sử font hướng dẫn đã được load và là biến thành viên 'font' của Menu
+    for (const std::string& str : guideLines) {
+        SDL_Surface* surface = TTF_RenderUTF8_Blended_Wrapped(font, str.c_str(), { 255, 255, 255, 255 }, wrapWidth);
+        if (surface) {
+            totalHeight += surface->h;
+            surfaces.push_back(surface);
+        }
+        else {
+            surfaces.push_back(nullptr);
+        }
+    }
+
+    // Tính vị trí y để căn giữa toàn bộ khối văn bản theo chiều dọc
+    int yOffset = (600 - totalHeight) / 2;
+
     SDL_Event e;
     bool viewingGuide = true;
     while (viewingGuide) {
@@ -419,19 +435,31 @@ void Menu::showGuide() {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        int yOffset = 100;
-        for (const std::string& line : guideText) {
-            SDL_Surface* surface = TTF_RenderUTF8_Blended(font, line.c_str(), { 255, 255, 255, 255 });
-            SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, surface);
-            if (textTexture) {
-                SDL_Rect textRect = {100, yOffset, surface->w, surface->h};
-                SDL_FreeSurface(surface);
-                SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
-                SDL_DestroyTexture(textTexture);
-                yOffset += 40;
+        int curY = yOffset;
+        // Render từng dòng, căn giữa theo chiều ngang
+        for (size_t i = 0; i < guideLines.size(); i++) {
+            if (surfaces[i]) {
+                SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surfaces[i]);
+                if (texture) {
+                    int textW, textH;
+                    SDL_QueryTexture(texture, NULL, NULL, &textW, &textH);
+                    SDL_Rect textRect = { (800 - textW) / 2, curY, textW, textH };
+                    SDL_RenderCopy(renderer, texture, NULL, &textRect);
+                    SDL_DestroyTexture(texture);
+                }
+                curY += surfaces[i]->h;
             }
         }
+
         SDL_RenderPresent(renderer);
+        SDL_Delay(16);
+    }
+
+    // Giải phóng các surface
+    for (SDL_Surface* surf : surfaces) {
+        if (surf) {
+            SDL_FreeSurface(surf);
+        }
     }
 }
 

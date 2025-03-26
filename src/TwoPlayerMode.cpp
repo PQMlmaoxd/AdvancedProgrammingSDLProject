@@ -45,7 +45,7 @@ int TwoPlayerMode::run() {
         render();
         SDL_Delay(16); // ~60 FPS
     }
-    return -1; // Quay lại menu
+    return returnValue; // Quay lại menu
 }
 
 void TwoPlayerMode::handleEvents() {
@@ -79,7 +79,7 @@ void TwoPlayerMode::update() {
     player1.updateNoKey(maze, renderer);
 
     // Player 2 cập nhật đầy đủ
-    player2.update(maze, renderer);
+    player2.update1(maze, renderer);
 
     // Kiểm tra thắng (chỉ Player 2)
     checkWinCondition();
@@ -106,55 +106,8 @@ void TwoPlayerMode::checkWinCondition() {
     // Player2 phải có key để thắng
     if (SDL_HasIntersection(&p2Rect, &goalRect)) {
         if (player2.hasKey()) {
-            showWinScreen("Player 2");
             running = false;
         }
     }
 }
 
-void TwoPlayerMode::showWinScreen(const std::string& winnerName) {
-    bool done = false;
-    SDL_Event e;
-
-    TTF_Font* font = TTF_OpenFont("resources/fonts/arial.ttf", 48);
-    if (!font) {
-        std::cerr << "Không thể load font: " << TTF_GetError() << std::endl;
-        return;
-    }
-
-    // Hiển thị " Wins!" hoặc winnerName + " Wins!"
-    std::string message = " Wins!";
-    SDL_Color textColor = { 255, 255, 255, 255 };
-
-    while (!done) {
-        while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) {
-                done = true;
-            }
-            if (e.type == SDL_KEYDOWN) {
-                // Bấm phím bất kỳ để thoát
-                done = true;
-            }
-        }
-
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
-
-        SDL_Surface* surface = TTF_RenderUTF8_Blended(font, message.c_str(), textColor);
-        if (surface) {
-            SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-            SDL_FreeSurface(surface);
-
-            int w = 0, h = 0;
-            SDL_QueryTexture(texture, NULL, NULL, &w, &h);
-            SDL_Rect dstRect = { (800 - w) / 2, (600 - h) / 2, w, h };
-            SDL_RenderCopy(renderer, texture, NULL, &dstRect);
-            SDL_DestroyTexture(texture);
-        }
-
-        SDL_RenderPresent(renderer);
-        SDL_Delay(16);
-    }
-
-    TTF_CloseFont(font);
-}

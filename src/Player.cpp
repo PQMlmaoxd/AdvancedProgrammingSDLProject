@@ -7,7 +7,8 @@
 #include <sstream>
 #include <filesystem>
 namespace fs = std::filesystem;
-
+int screenWidth = 800;
+int screenHeight = 600;
 
 Player::Player(SDL_Renderer* renderer, Maze& maze) : renderer(renderer) {
     if (!loadPosition("save.txt")) { 
@@ -156,23 +157,66 @@ int Player::showWinScreen(SDL_Renderer* renderer) {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        SDL_Texture* winText = renderText("You Win!", font, textColor, renderer);
-        SDL_Rect winRect = { 300, 100, 200, 60 };
-        SDL_RenderCopy(renderer, winText, NULL, &winRect);
-        SDL_DestroyTexture(winText);
+        SDL_Surface* winSurface = TTF_RenderUTF8_Blended(font, "You Win!", textColor);
+        if (winSurface) {
+            SDL_Texture* winText = SDL_CreateTextureFromSurface(renderer, winSurface);
+            if (winText) {
+                SDL_Rect winRect = {
+                    (screenWidth - winSurface->w) / 2,  // Căn giữa ngang
+                    screenHeight / 5,                   // Đặt ở 1/5 màn hình từ trên xuống
+                    winSurface->w,
+                    winSurface->h
+                };
+                SDL_RenderCopy(renderer, winText, NULL, &winRect);
+                SDL_DestroyTexture(winText);
+            }
+            SDL_FreeSurface(winSurface);
+        }
 
-        SDL_Texture* bestTimeText = renderText(bestTimeMsg.str(), optionFont, textColor, renderer);
-        SDL_Rect bestTimeRect = { 300, 160, 200, 40 };
-        SDL_RenderCopy(renderer, bestTimeText, NULL, &bestTimeRect);
-        SDL_DestroyTexture(bestTimeText);
+        // Hiển thị thời gian tốt nhất (Best Time)
+        SDL_Surface* bestTimeSurface = TTF_RenderUTF8_Blended(optionFont, bestTimeMsg.str().c_str(), textColor);
+        if (bestTimeSurface) {
+            SDL_Texture* bestTimeText = SDL_CreateTextureFromSurface(renderer, bestTimeSurface);
+            if (bestTimeText) {
+                SDL_Rect bestTimeRect = {
+                    (screenWidth - bestTimeSurface->w) / 2,  // Căn giữa ngang
+                    screenHeight / 3,                        // Đặt ở 1/3 màn hình từ trên xuống
+                    bestTimeSurface->w,
+                    bestTimeSurface->h
+                };
+                SDL_RenderCopy(renderer, bestTimeText, NULL, &bestTimeRect);
+                SDL_DestroyTexture(bestTimeText);
+            }
+            SDL_FreeSurface(bestTimeSurface);
+        }
 
         std::vector<std::string> options = { "Escape", "Menu" };
         for (size_t i = 0; i < options.size(); i++) {
             SDL_Color optionColor = (i == selectedOption) ? SDL_Color{ 255, 255, 0, 255 } : textColor;
-            SDL_Texture* optionText = renderText(options[i], optionFont, optionColor, renderer);
-            SDL_Rect optionRect = { 300, 250 + (int)i * 50, 200, 40 };
+
+            SDL_Surface* optionSurface = TTF_RenderUTF8_Blended(optionFont, options[i].c_str(), optionColor);
+            if (!optionSurface) {
+                std::cerr << "Failed to render option text: " << TTF_GetError() << std::endl;
+                continue;
+            }
+
+            SDL_Texture* optionText = SDL_CreateTextureFromSurface(renderer, optionSurface);
+            if (!optionText) {
+                std::cerr << "Failed to create option texture: " << SDL_GetError() << std::endl;
+                SDL_FreeSurface(optionSurface);
+                continue;
+            }
+
+            SDL_Rect optionRect = {
+                (screenWidth - optionSurface->w) / 2,   // Căn giữa ngang
+                screenHeight / 2 + (int)i * 60,         // Cách nhau 60px
+                optionSurface->w,
+                optionSurface->h
+            };
+
             SDL_RenderCopy(renderer, optionText, NULL, &optionRect);
             SDL_DestroyTexture(optionText);
+            SDL_FreeSurface(optionSurface);
         }
 
         SDL_RenderPresent(renderer);
@@ -370,5 +414,138 @@ void Player::updateNoKey(Maze& maze, SDL_Renderer* renderer)
     setPlayTime(currentTime - startTime);
 }
 
+int Player::showWinScreen1(SDL_Renderer* renderer) {
+    bool choosing = true;
+    int selectedOption = 0;
+    SDL_Event e;
+
+    // Đọc record thời gian nếu cần (tương tự showWinScreen)
+    Uint32 bestTime = 0;
+    std::ifstream inFile("Save/time/best_time.txt");
+    if (inFile.is_open()) {
+        inFile >> bestTime;
+        inFile.close();
+    }
+
+    TTF_Font* font = TTF_OpenFont("resources/fonts/arial.ttf", 48);
+    TTF_Font* optionFont = TTF_OpenFont("resources/fonts/arial.ttf", 28);
+    SDL_Color textColor = { 255, 255, 255, 255 };
+
+    while (choosing) {
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+
+        // Hiển thị "Both of you win!" thay vì "You Win!"
+        SDL_Surface* winSurface = TTF_RenderUTF8_Blended(font, "Both of you win!", textColor);
+        if (winSurface) {
+            SDL_Texture* winText = SDL_CreateTextureFromSurface(renderer, winSurface);
+            if (winText) {
+                SDL_Rect winRect = {
+                    (screenWidth - winSurface->w) / 2,  // Căn giữa ngang
+                    screenHeight / 4,                   // Đặt ở 1/4 màn hình
+                    winSurface->w,
+                    winSurface->h
+                };
+                SDL_RenderCopy(renderer, winText, NULL, &winRect);
+                SDL_DestroyTexture(winText);
+            }
+            SDL_FreeSurface(winSurface);
+        }
+
+        // Hiển thị hai lựa chọn: "Escape" và "Menu"
+        std::vector<std::string> options = { "Escape", "Menu" };
+        for (size_t i = 0; i < options.size(); i++) {
+            SDL_Color optionColor = (i == selectedOption) ? SDL_Color{ 255, 255, 0, 255 } : textColor;
+
+            SDL_Surface* optionSurface = TTF_RenderUTF8_Blended(optionFont, options[i].c_str(), optionColor);
+            if (!optionSurface) {
+                std::cerr << "Failed to render option text: " << TTF_GetError() << std::endl;
+                continue;
+            }
+
+            SDL_Texture* optionText = SDL_CreateTextureFromSurface(renderer, optionSurface);
+            if (!optionText) {
+                std::cerr << "Failed to create option texture: " << SDL_GetError() << std::endl;
+                SDL_FreeSurface(optionSurface);
+                continue;
+            }
+
+            // Căn giữa theo chiều ngang và đặt vị trí dọc phù hợp
+            SDL_Rect optionRect = {
+                (screenWidth - optionSurface->w) / 2,  // Căn giữa ngang
+                screenHeight / 2 + (int)i * 60,        // Đặt ở giữa màn hình, cách nhau 60px
+                optionSurface->w,
+                optionSurface->h
+            };
+
+            SDL_RenderCopy(renderer, optionText, NULL, &optionRect);
+            SDL_DestroyTexture(optionText);
+            SDL_FreeSurface(optionSurface);
+        }
+
+        SDL_RenderPresent(renderer);
+
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_QUIT)
+                return -1;
+            if (e.type == SDL_KEYDOWN) {
+                switch (e.key.keysym.sym) {
+                case SDLK_UP:
+                    selectedOption = (selectedOption - 1 + options.size()) % options.size();
+                    break;
+                case SDLK_DOWN:
+                    selectedOption = (selectedOption + 1) % options.size();
+                    break;
+                case SDLK_RETURN:
+                    if (selectedOption == 0)
+                        return -1;  // Thoát game
+                    if (selectedOption == 1)
+                        return -2;  // Quay lại menu
+                }
+            }
+        }
+        SDL_Delay(16);
+    }
+
+    TTF_CloseFont(font);
+    TTF_CloseFont(optionFont);
+    return -1;
+}
+
+void Player::update1(Maze& maze, SDL_Renderer* renderer) {
+    // Giống hệt update(...), chỉ khác ở chỗ gọi showWinScreen1(...)
+    setPlayTime(SDL_GetTicks() - startTime);
+
+    // Kiểm tra key
+    if (!hasKey() && maze.checkKeyCollision(rect)) {
+        collectKey();
+        maze.unlockDoor();
+        std::cout << "Key collected!" << std::endl;
+    }
+
+    // Kiểm tra cửa
+    SDL_Rect goalRect = { maze.getGoalX(), maze.getGoalY(), tileSize, tileSize };
+    if (SDL_HasIntersection(&rect, &goalRect) && !winProcessed) {
+        if (!hasKey()) {
+            std::cout << "Exit is locked. You need a key to exit!" << std::endl;
+        }
+        else {
+            // Lưu best time nếu muốn
+            Uint32 currentPlayTime = getPlayTime();
+            // ...
+            winProcessed = true;
+
+            // Gọi showWinScreen1(...) thay vì showWinScreen(...)
+            int result = showWinScreen1(renderer);
+            if (result == -2) {
+                returnToMenu = true;
+            }
+            else if (result == -1) {
+                SDL_Quit();
+                exit(0);
+            }
+        }
+    }
+}
 
 

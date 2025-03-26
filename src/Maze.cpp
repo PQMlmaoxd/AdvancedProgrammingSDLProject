@@ -286,29 +286,28 @@ void Maze::createShadowMask(SDL_Renderer* renderer, int playerX, int playerY) {
 }
 
 void Maze::spawnKey(SDL_Renderer* renderer, Uint32 elapsedTime) {
-    // Nếu chưa đủ 20 giây hoặc key đã được spawn rồi, không làm gì cả
     if (keySpawned || elapsedTime < keySpawnTime) {
         return;
     }
 
-    // Chọn ngẫu nhiên một trong 2 góc:
-    // Giả sử spawn của player ở góc trên bên trái (vị trí (1,1)) và exit ở góc dưới bên phải (vị trí (cols-2, rows-2))
-    // Các góc còn lại: góc trên bên phải (cols-2, 1) và góc dưới bên trái (1, rows-2)
-    int positions[2][2] = { {cols - 2, 1}, {1, rows - 2} };
-    int index = rand() % 2;  // Chọn ngẫu nhiên 0 hoặc 1
+    // Lặp tối đa 100 lần để tìm ô trống
+    for (int attempt = 0; attempt < 100; attempt++) {
+        int gx = rand() % cols;  // cột ngẫu nhiên
+        int gy = rand() % rows;  // hàng ngẫu nhiên
 
-    int keyX = positions[index][0];
-    int keyY = positions[index][1];
-
-    // Đặt vị trí key theo pixel (mỗi ô có kích thước tileSize)
-    key.setPosition(keyX * tileSize, keyY * tileSize);
-
-    // Tải texture cho key
-    if (!key.loadTexture(renderer, "resources/images/key.png")) {
-        std::cerr << "Failed to load key texture" << std::endl;
+        if (maze[gy][gx] == 0) {
+            // Tìm được ô trống => spawn key
+            key.setPosition(gx * tileSize, gy * tileSize);
+            if (!key.loadTexture(renderer, "resources/images/key.png")) {
+                std::cerr << "Failed to load key texture" << std::endl;
+            }
+            keySpawned = true;
+            return;
+        }
     }
 
-    keySpawned = true;
+    // Nếu thử 100 lần mà chưa tìm thấy ô trống => bỏ qua
+    std::cerr << "Could not find a free cell to spawn key!\n";
 }
 
 bool Maze::checkKeyCollision(const SDL_Rect& playerRect) {
