@@ -722,7 +722,7 @@ bool Menu::confirmSaveFile(const std::string& fileName) {
         SDL_RenderClear(renderer);
 
         // Hiển thị thông điệp: "FileSave: <fileName> \n Co xac nhan khong?"
-        std::string message = "FileSave: " + fileName + "\nCo xac nhan khong?";
+        std::string message = "FileSave: " + fileName + "?";
         SDL_Surface* msgSurface = TTF_RenderUTF8_Blended(font, message.c_str(), textColor);
         if (!msgSurface) {
             std::cerr << "Failed to render message surface: " << TTF_GetError() << std::endl;
@@ -740,8 +740,8 @@ bool Menu::confirmSaveFile(const std::string& fileName) {
         }
 
         // Hiển thị lựa chọn "Có" và "Không"
-        std::string yesOption = (selected == 1) ? "> Co <" : "Co";
-        std::string noOption = (selected == 0) ? "> Khong <" : "Khong";
+        std::string yesOption = (selected == 1) ? "> Yes <" : "Yes";
+        std::string noOption = (selected == 0) ? "> NO <" : "NO";
 
         // Render "Có"
         SDL_Surface* yesSurface = TTF_RenderUTF8_Blended(font, yesOption.c_str(), textColor);
