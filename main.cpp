@@ -106,20 +106,6 @@ int startGame(SDL_Renderer* renderer, const std::string& mazeFile, const std::st
         maze.render(renderer, player.getX(), player.getY());
         player.render(renderer);
 
-        // Render đồng hồ (timer) ở góc trên bên phải
-        {
-            std::ostringstream oss;
-            oss << "Time: " << elapsedTime << " ms";
-            SDL_Texture* timerText = renderText(oss.str(), timerFont, timerColor, renderer);
-            if (timerText) {
-                int textW, textH;
-                SDL_QueryTexture(timerText, NULL, NULL, &textW, &textH);
-                SDL_Rect timerRect = { SCREEN_WIDTH - textW - 10, 10, textW, textH };
-                SDL_RenderCopy(renderer, timerText, NULL, &timerRect);
-                SDL_DestroyTexture(timerText);
-            }
-        }
-
         SDL_RenderPresent(renderer);
     }
 
